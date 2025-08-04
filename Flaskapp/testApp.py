@@ -17,18 +17,17 @@ app=Flask(__name__)
 @app.route('/register', methods=['GET','POST'])
 def register():
     if request.method == 'POST':
-        firstName=request.form['first_name']
-        lastName=request.form['last_name']
+        username=request.form['username']
         emailID=request.form['email_id']
         mobileNum=request.form['mobile_number']
         password=request.form['password']
 
-        sql="INSERT INTO user_info (first_name,last_name,email_id,mobile_number,password) VALUES (%s,%s,%s,%s,%s)"
-        values=(firstName,lastName,emailID,mobileNum,password)
+        sql="INSERT INTO test_info_users (username,email_id,mobile_number,password) VALUES (%s,%s,%s,%s)"
+        values=(username,emailID,mobileNum,password)
         cursor.execute(sql,values)
         conn.commit()
 
-        return f"User {firstName} registered successfully!"
+        return f"User {username} registered successfully!"
     return render_template('register.html')
 
 if __name__ == '__main__':
