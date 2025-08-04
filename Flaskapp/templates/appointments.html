@@ -1,0 +1,46 @@
+<main>
+    <h2>Upcoming Appointments</h2>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Doctor</th>
+            <th>Clinic</th>
+            <th>Status</th>
+        </tr>
+        {% for appt in appointments %}
+        <tr>
+            <td>{{ appt.date }}</td>
+            <td>{{ appt.time }}</td>
+            <td>{{ appt.doctor }}</td>
+            <td>{{ appt.clinic }}</td>
+            <td>{{ appt.status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2 style="margin-top: 3rem;">Book New Appointment</h2>
+    <form action="/book" method="post" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        <label for="doctor">Doctor:</label><br>
+        <input type="text" id="doctor" name="doctor" required><br><br>
+
+        <label for="clinic">Clinic:</label><br>
+        <select id="clinic" name="clinic" required>
+            <option value="">-- Select Clinic --</option>
+            <option value="Clinic A">Clinic A</option>
+            <option value="Clinic B">Clinic B</option>
+            <option value="Clinic C">Clinic C</option>
+        </select><br><br>
+
+        <label for="date">Date:</label><br>
+        <input type="date" id="date" name="date" required><br><br>
+
+        <label for="time">Time:</label><br>
+        <input type="time" id="time" name="time" required><br><br>
+
+        <label for="notes">Notes:</label><br>
+        <textarea id="notes" name="notes" rows="4" cols="50" placeholder="Optional notes..."></textarea><br><br>
+
+        <button type="submit" style="padding: 0.5rem 1rem; background: #2c3e50; color: white; border: none; border-radius: 4px;">Book</button>
+    </form>
+</main>

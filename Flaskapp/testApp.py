@@ -30,6 +30,16 @@ def register():
         return f"User {username} registered successfully!"
     return render_template('register.html')
 
+
+@app.route("/appointments")
+def dashboard():
+    appointments = [
+        {"date": "2025-08-05", "time": "10:00", "doctor": "Dr. Rao", "clinic": "Clinic A", "status": "Confirmed"},
+        {"date": "2025-08-07", "time": "14:30", "doctor": "Dr. Shah", "clinic": "Clinic B", "status": "Pending"},
+    ]
+    return render_template("dashboard.html", appointments=appointments)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 
