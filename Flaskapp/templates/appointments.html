@@ -21,8 +21,8 @@
 
     <h2 style="margin-top: 3rem;">Book New Appointment</h2>
     <form action="/book" method="post" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <label for="doctor">Doctor:</label><br>
-        <input type="text" id="doctor" name="doctor" required><br><br>
+        <label for="date">Date:</label><br>
+        <input type="date" id="date" name="date" required><br><br>
 
         <label for="clinic">Clinic:</label><br>
         <select id="clinic" name="clinic" required>
@@ -32,8 +32,13 @@
             <option value="Clinic C">Clinic C</option>
         </select><br><br>
 
-        <label for="date">Date:</label><br>
-        <input type="date" id="date" name="date" required><br><br>
+        <label for="doctor">Doctor:</label><br>
+        <select id="doctor" name="doctor" required>
+            <option value="">-- Select Doctor --</option>
+            <option value="Dr. Rao">Dr. Rao</option>
+            <option value="Dr. Shah">Dr. Shah</option>
+            <option value="Dr. Mehta">Dr. Mehta</option>
+        </select><br><br>
 
         <label for="time">Time:</label><br>
         <input type="time" id="time" name="time" required><br><br>

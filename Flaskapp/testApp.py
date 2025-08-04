@@ -37,7 +37,7 @@ def dashboard():
         {"date": "2025-08-05", "time": "10:00", "doctor": "Dr. Rao", "clinic": "Clinic A", "status": "Confirmed"},
         {"date": "2025-08-07", "time": "14:30", "doctor": "Dr. Shah", "clinic": "Clinic B", "status": "Pending"},
     ]
-    return render_template("dashboard.html", appointments=appointments)
+    return render_template("appointments.html", appointments=appointments)
 
 
 if __name__ == '__main__':
