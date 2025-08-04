@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Multi Clinic Doctor Appointment</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    header {
+      background-color: #ffffff;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    header h1 {
+      color: #007BFF;
+      margin: 0;
+    }
+    nav a {
+      margin-left: 10px;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    nav a:hover {
+      background-color: #0056b3;
+    }
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      background-color: #e6f0ff;
+    }
+    .hero h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    .hero p {
+      font-size: 18px;
+      color: #333;
+    }
+    .services, .contact {
+      padding: 40px 20px;
+      background-color: #ffffff;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .services h3, .contact h3 {
+      text-align: center;
+      color: #007BFF;
+      font-size: 28px;
+    }
+    .service-items {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      margin-top: 30px;
+    }
+    .service-item {
+      width: 300px;
+      margin: 10px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #fafafa;
+    }
+    .service-item h4 {
+      margin-top: 0;
+    }
+    .contact-info {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 18px;
+      line-height: 1.8;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #ffffff;
+      border-top: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <h1>MultiClinicApp</h1>
+    <nav>
+      <a href="{{ url_for('login') }}">Login</a>
+    <a href="{{ url_for('register') }}">Register</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h2>Book Appointments Across Multiple Clinics</h2>
+    <p>Easily find, compare, and book doctors from different clinics—all in one place.</p>
+  </section>
+
+  <!-- Services Section -->
+<section class="services">
+  <h3>Our Services</h3>
+  <div class="service-items">
+    <div class="service-item">
+      <h4>Multi-Clinic Booking</h4>
+      <p>Search, compare, and book appointments with doctors across multiple clinics through a unified platform. No need to call or visit—book with a few clicks!</p>
+    </div>
+    <div class="service-item">
+      <h4>Doctor Profiles</h4>
+      <p>Access detailed doctor profiles with information on qualifications, specialties, years of experience, languages spoken, and verified patient reviews.</p>
+    </div>
+    <div class="service-item">
+      <h4>Real-Time Scheduling</h4>
+      <p>View available time slots and make instant bookings based on your preferred date and clinic location—no more waiting for confirmation calls.</p>
+    </div>
+    <div class="service-item">
+      <h4>Appointment Reminders</h4>
+      <p>Get automated SMS or email reminders before your appointment so you never miss a visit again.</p>
+    </div>
+    <div class="service-item">
+      <h4>Prescription Upload</h4>
+      <p>Upload existing prescriptions before your visit so doctors are informed in advance, saving time during consultations.</p>
+    </div>
+    <div class="service-item">
+      <h4>Patient History Management</h4>
+      <p>Maintain a secure digital health record for easy reference—track past appointments, diagnoses, prescriptions, and lab reports in one place.</p>
+    </div>
+  </div>
+</section>
+
+  <!-- Contact Us Section -->
+<section class="contact">
+  <h3>Contact Us</h3>
+  <div class="contact-info">
+    <p><a href="tel:‪+919876543210‬">Call Us</a></p>
+    <p><a href="mailto:support@yourclinic.com">Email Us</a></p>
+    <p><strong>Address:</strong> 2nd Floor, HealthCare Building, Sector 12, New Delhi, India</p>
+  </div>
+</section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 MultiClinicApp. All rights reserved.</p>
+  </footer>
+
+</body>
+</html>
