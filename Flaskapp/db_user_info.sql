@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.43, for Win64 (x86_64)
 --
--- Host: 127.0.0.1    Database: test_users
+-- Host: 127.0.0.1    Database: db_user_info
 -- ------------------------------------------------------
 -- Server version	8.0.43
 
@@ -16,15 +16,14 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `user_info`
+-- Table structure for table `test_info_users`
 --
 
-DROP TABLE IF EXISTS `user_info`;
+DROP TABLE IF EXISTS `test_info_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user_info` (
-  `first_name` varchar(20) DEFAULT NULL,
-  `last_name` varchar(20) DEFAULT NULL,
+CREATE TABLE `test_info_users` (
+  `username` varchar(25) DEFAULT NULL,
   `email_id` varchar(50) DEFAULT NULL,
   `mobile_number` varchar(10) DEFAULT NULL,
   `password` varchar(20) DEFAULT NULL
@@ -32,13 +31,12 @@ CREATE TABLE `user_info` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `user_info`
+-- Dumping data for table `test_info_users`
 --
 
-LOCK TABLES `user_info` WRITE;
-/*!40000 ALTER TABLE `user_info` DISABLE KEYS */;
-INSERT INTO `user_info` VALUES ('arnav','kulkarni','what@working.com','1234567891','pass1'),('new','name','lol@thus.com','9876543210','pass2');
-/*!40000 ALTER TABLE `user_info` ENABLE KEYS */;
+LOCK TABLES `test_info_users` WRITE;
+/*!40000 ALTER TABLE `test_info_users` DISABLE KEYS */;
+/*!40000 ALTER TABLE `test_info_users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -50,4 +48,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-08-03 22:20:28
+-- Dump completed on 2025-08-04  0:02:10
