@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, flash,session
 from dotenv import load_dotenv
 import os
 import mysql.connector
@@ -14,6 +14,17 @@ conn = mysql.connector.connect(
 cursor=conn.cursor()
 
 app=Flask(__name__)
+@app.route('/')
+def home():
+    return render_template('home.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        # You can add login logic here
+        return "Login successful!"  # Placeholder
+    return render_template('login.html')
+
 @app.route('/register', methods=['GET','POST'])
 def register():
     if request.method == 'POST':
@@ -27,17 +38,23 @@ def register():
         cursor.execute(sql,values)
         conn.commit()
 
-        return f"User {username} registered successfully!"
+        return redirect(url_for('login', msg="User registered successfully"))
     return render_template('register.html')
 
-
-@app.route("/appointments")
+@app.route("/dashboard", methods=['GET','POST'])
 def dashboard():
-    appointments = [
-        {"date": "2025-08-05", "time": "10:00", "doctor": "Dr. Rao", "clinic": "Clinic A", "status": "Confirmed"},
-        {"date": "2025-08-07", "time": "14:30", "doctor": "Dr. Shah", "clinic": "Clinic B", "status": "Pending"},
-    ]
-    return render_template("dashboard.html", appointments=appointments)
+     if request.method == 'POST':
+         doctor=request.form['doctor']
+         clinic=request.form['clinic']
+         date=request.form['date']
+         time=request.form['time']
+         sql="INSERT INTO Appointment (ADate,ATime,Doctor,Clinic) VALUES (%s,%s,%s,%s)"
+         values=(date,time,doctor,clinic)
+         cursor.execute(sql,values)
+         conn.commit()
+
+         return f"Appointment booked!"
+     return render_template('dashboard.html')
 
 
 if __name__ == '__main__':
