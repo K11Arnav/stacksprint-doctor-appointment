@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash,session
 from dotenv import load_dotenv
+from datetime import date
 import os
 import mysql.connector
 
@@ -14,6 +15,7 @@ conn = mysql.connector.connect(
 cursor=conn.cursor()
 
 app=Flask(__name__)
+app.secret_key = 'your_secret_key'
 @app.route('/')
 def home():
     return render_template('home.html')
@@ -21,9 +23,28 @@ def home():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # You can add login logic here
-        return "Login successful!"  # Placeholder
+        username = request.form['username']
+        password = request.form['password']
+        conn = mysql.connector.connect(
+            host=os.getenv("DB_HOST"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            database=os.getenv("DB_NAME")
+        )
+        cursor = conn.cursor()
+        query = "SELECT * FROM test_info_users WHERE username=%s AND password=%s"
+        cursor.execute(query, (username, password))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if user:
+            session['username'] = user[0]  
+            flash("User login successful!")
+            return redirect(url_for('dashboard'))
+        else:
+            flash("Invalid username or password")
     return render_template('login.html')
+    
 
 @app.route('/register', methods=['GET','POST'])
 def register():
@@ -41,20 +62,27 @@ def register():
         return redirect(url_for('login', msg="User registered successfully"))
     return render_template('register.html')
 
-@app.route("/dashboard", methods=['GET','POST'])
-def dashboard():
+@app.route('/appointment', methods=['GET','POST'])
+def appointment():
+     today = date.today().isoformat()
      if request.method == 'POST':
          doctor=request.form['doctor']
          clinic=request.form['clinic']
-         date=request.form['date']
+         adate=request.form['date']
          time=request.form['time']
          sql="INSERT INTO Appointment (ADate,ATime,Doctor,Clinic) VALUES (%s,%s,%s,%s)"
-         values=(date,time,doctor,clinic)
+         values=(adate,time,doctor,clinic)
          cursor.execute(sql,values)
          conn.commit()
+     flash("Appointment booked!")
+     cursor.execute("SELECT ATime FROM Appointment WHERE ADate = %s", (today,))
+     result = cursor.fetchall()
+     booked_slots = [row[0] for row in result] 
+     return render_template('appointment.html', current_date=today, booked_slots=booked_slots)
 
-         return f"Appointment booked!"
-     return render_template('dashboard.html')
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
 
 
 if __name__ == '__main__':

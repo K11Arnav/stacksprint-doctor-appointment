@@ -1,14 +1,92 @@
 <!DOCTYPE html>
-<html>
-<head><title>Register</title></head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to right, #190162, #080808);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .register-container {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            width: 350px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], 
+        input[type="email"], 
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #4facfe;
+        }
+
+        input[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: #4facfe;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="submit"] {
+            background: #00c6fb;
+        }
+    </style>
+</head>
 <body>
-  <h2>Register</h2>
-  <form method="POST" action="/register">
-    Username: <input type="text" name="username"><br><br>
-    Mobile No: <input type="text" name="mobile_number"><br><br>
-    Email: <input type="email" name="email_id"><br><br>
-    Password: <input type="password" name="password"><br><br>
-    <input type="submit" value="Register">
-  </form>
+    <div class="register-container">
+        <h2>Register</h2>
+        <form method="POST" action="/register">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="mobile_number">Mobile No</label>
+            <input type="text" id="mobile_number" name="mobile_number" required>
+
+            <label for="email_id">Email</label>
+            <input type="email" id="email_id" name="email_id" required>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <input type="submit" value="Register">
+        </form>
+    </div>
 </body>
 </html>
