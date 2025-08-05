@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> 
+        Appointment Booking
+    </title>
+</head>
+<body>
+    <h2 style="margin-top: 3rem;">Book New Appointment</h2>
+    <form action="/appointment" method="post" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        <label for="doctor">Doctor:</label><br>
+        <input type="text" id="doctor" name="doctor" required><br><br>
+        <label for="clinic">Clinic:</label><br>
+        <select id="clinic" name="clinic" required>
+            <option value="">-- Select Clinic --</option>
+            <option value="Clinic A">Clinic A</option>
+            <option value="Clinic B">Clinic B</option>
+            <option value="Clinic C">Clinic C</option>
+        </select><br><br>
+        <label for="date">Date:</label><br>
+        <input type="date" id="date" name="date" min="{{ current_date }}" required><br><br>
+        <label>Select Time Slot:</label><br>
+        {% for hour in range(8, 20) %}  {# From 8 AM to 7:30 PM #}
+            {% for minute in [0, 30] %}
+                {% set time_slot = "%02d:%02d"|format(hour, minute) %}
+                 <label style="display: inline-block; margin: 5px;">
+                    <input type="radio" name="time" value="{{ time_slot }}" 
+                        {% if time_slot in booked_slots %}disabled{% endif %}>
+                    {{ time_slot }}
+                </label>
+            {% endfor %}
+        {% endfor %}
+        <label style="display: inline-block; margin: 5px;">
+            <input type="radio" name="time" value="20:00" {% if "20:00" in booked_slots %}disabled{% endif %}>
+            20:00
+        </label>
+        <br><br>
+        <button type="submit" style="padding: 0.5rem 1rem; background: #2c3e50; color: white; border: none; border-radius: 4px;">Book</button>
+    </form>
+</body>
+</html>
