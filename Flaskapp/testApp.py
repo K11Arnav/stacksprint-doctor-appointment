@@ -65,25 +65,61 @@ def register():
 @app.route('/appointment', methods=['GET','POST'])
 def appointment():
      today = date.today().isoformat()
+     selected_clinic = None
+     selected_doctor = None
+     selected_date = None
+     clinics = []
+     doctors = []
+     booked_slots = []
+     cursor.execute("SELECT DISTINCT Clinic FROM Doctors")
+     clinics = [row[0] for row in cursor.fetchall()]
      if request.method == 'POST':
-         doctor=request.form['doctor']
-         clinic=request.form['clinic']
-         adate=request.form['date']
-         time=request.form['time']
-         sql="INSERT INTO Appointment (ADate,ATime,Doctor,Clinic) VALUES (%s,%s,%s,%s)"
-         values=(adate,time,doctor,clinic)
-         cursor.execute(sql,values)
-         conn.commit()
-     flash("Appointment booked!")
+        selected_date = request.form['date']
+        selected_clinic = request.form['clinic']
+        time = request.form['time']
+        selected_doctor = request.form['doctor']
+        if selected_clinic and selected_doctor:
+            cursor.execute("SELECT Doctor FROM Doctors WHERE clinic = %s", (selected_clinic,))
+            doctors = [row[0] for row in cursor.fetchall()]
+            cursor.execute("SELECT ATime FROM Appointment WHERE ADate = %s AND Clinic = %s", (selected_date, selected_clinic))
+            booked_slots = [row[0] for row in cursor.fetchall()]
+            return render_template('appointment.html', current_date=today, clinics=clinics, selected_clinic=selected_clinic, doctors=doctors, selected_date=selected_date, booked_slots=booked_slots)
+        if selected_clinic and selected_doctor and time:
+            sql="INSERT INTO Appointment (ADate,ATime,Doctor,Clinic) VALUES (%s,%s,%s,%s)"
+            values=(selected_date,time,selected_doctor, selected_clinic)
+            cursor.execute(sql,values)
+            conn.commit()
+            flash("Appointment booked!")
      cursor.execute("SELECT ATime FROM Appointment WHERE ADate = %s", (today,))
-     result = cursor.fetchall()
-     booked_slots = [row[0] for row in result] 
-     return render_template('appointment.html', current_date=today, booked_slots=booked_slots)
+     if selected_date and selected_clinic and selected_doctor:
+        cursor.execute("SELECT ATime FROM Appointment WHERE ADate = %s AND Clinic = %s AND Doctor = %s",(selected_date, selected_clinic, selected_doctor))
+        booked_slots = [row[0] for row in cursor.fetchall()]
+     return render_template('appointment.html', current_date=today, booked_slots=booked_slots, clinics=clinics, selected_clinic=selected_clinic, doctors=doctors,  selected_date=selected_date)
 
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
 
+@app.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('query')
+    print(f"Search query: {query}")  # Check if this prints in terminal
+
+    conn = mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
+    )
+    cursor = conn.cursor()
+    sql = "SELECT * FROM doc_info WHERE DName LIKE %s OR DClinic LIKE %s"
+    val = ('%' + query + '%', '%' + query + '%')
+    cursor.execute(sql, val)
+    results = cursor.fetchall()
+
+    print(f"Results: {results}") 
+
+    return render_template('search_results.html', query=query, results=results)
 
 if __name__ == '__main__':
     app.run(debug=True)

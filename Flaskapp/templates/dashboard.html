@@ -126,19 +126,21 @@
 
   <header>
     <div class="title">Doctor Appointment Dashboard</div>
-    <a href="/logout" class="logout-btn">Logout</a>
+    <a href="/" class="logout-btn">Logout</a>
   </header>
 
   <div class="container">
 
-    <div class="top-bar">
-  <div class="search-bar">
-    <input type="text" placeholder="Search doctor, clinic, or disease">
-    <button class="btn">Search</button>
-  </div>
+   <div class="top-bar">
+    <div class="search-bar" style="display: flex; align-items: center; gap: 10px;">
+      <form method="get" action="{{ url_for('search') }}" style="display: flex; align-items: center; gap: 10px;">
+        <input type="text" name="query" placeholder="Search doctor, clinic, or disease" required>
+        <button type="submit" class="btn">Search</button>
+      </form>
+    </div>
 
-  <a href="{{ url_for('appointment') }}" class="btn">Book an Appointment</a>
-</div>
+    <a href="{{ url_for('appointment') }}" class="btn">Book an Appointment</a>
+  </div>
 
     <div class="map-container">
   <h3 style="text-align:center; padding: 10px 0;">Available Clinics (Map View)</h3>
