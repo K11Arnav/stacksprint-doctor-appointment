@@ -1,3 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Appointments</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f5f7fa;
+        margin: 0;
+        padding: 2rem;
+    }
+
+    main {
+        max-width: 900px;
+        margin: auto;
+    }
+
+    h2 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    /* Table Styling */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2rem;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+    }
+
+    th {
+        background: #2c3e50;
+        color: white;
+        font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+        background: #f9f9f9;
+    }
+
+    tr:hover {
+        background: #f1f1f1;
+    }
+
+    /* Form Styling */
+    form {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        outline: none;
+        transition: border-color 0.3s;
+        font-size: 14px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        border-color: #2c3e50;
+    }
+
+    button {
+        padding: 0.6rem 1.2rem;
+        background: #2c3e50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    button:hover {
+        background: #34495e;
+    }
+</style>
+</head>
+<body>
 <main>
     <h2>Upcoming Appointments</h2>
     <table>
@@ -19,33 +125,36 @@
         {% endfor %}
     </table>
 
-    <h2 style="margin-top: 3rem;">Book New Appointment</h2>
-    <form action="/book" method="post" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <label for="date">Date:</label><br>
-        <input type="date" id="date" name="date" required><br><br>
+    <h2>Book New Appointment</h2>
+    <form action="/book" method="post">
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required>
 
-        <label for="clinic">Clinic:</label><br>
+        <label for="clinic">Clinic:</label>
         <select id="clinic" name="clinic" required>
             <option value="">-- Select Clinic --</option>
             <option value="Clinic A">Clinic A</option>
             <option value="Clinic B">Clinic B</option>
             <option value="Clinic C">Clinic C</option>
-        </select><br><br>
+        </select>
 
-        <label for="doctor">Doctor:</label><br>
+        <label for="doctor">Doctor:</label>
         <select id="doctor" name="doctor" required>
             <option value="">-- Select Doctor --</option>
             <option value="Dr. Rao">Dr. Rao</option>
             <option value="Dr. Shah">Dr. Shah</option>
             <option value="Dr. Mehta">Dr. Mehta</option>
-        </select><br><br>
+        </select>
 
-        <label for="time">Time:</label><br>
-        <input type="time" id="time" name="time" required><br><br>
+        <label for="time">Time:</label>
+        <input type="time" id="time" name="time" required>
 
-        <label for="notes">Notes:</label><br>
-        <textarea id="notes" name="notes" rows="4" cols="50" placeholder="Optional notes..."></textarea><br><br>
+        <label for="notes">Notes:</label>
+        <textarea id="notes" name="notes" rows="4" placeholder="Optional notes..."></textarea>
 
-        <button type="submit" style="padding: 0.5rem 1rem; background: #2c3e50; color: white; border: none; border-radius: 4px;">Book</button>
+        <button type="submit">Book</button>
     </form>
 </main>
+</body>
+</html>
+
