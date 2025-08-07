@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Prescriptions</title>
+  <style>
+    .prescription img {
+      max-width: 200px;
+      cursor: pointer;
+      margin: 10px;
+      border: 2px solid #ccc;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.9);
+    }
+
+    .modal-content {
+      display: block;
+      margin: auto;
+      max-width: 90vw;
+      max-height: 90vh;
+      margin-top: 5vh;
+    }
+
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 35px;
+      color: #fff;
+      font-size: 40px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <h1>Prescription Viewer</h1>
+
+  {% for p in prescriptions %}
+    <div class="prescription">
+      <img src="{{ url_for('static', filename='prescriptions/' ~ p[0]) }}"
+           alt="Prescription"
+           onclick="openFullscreen('{{ url_for('static', filename='prescriptions/' ~ p[0]) }}')">
+    </div>
+  {% endfor %}
+
+  <!-- Modal -->
+  <div id="imageModal" class="modal" onclick="closeFullscreen()">
+    <span class="close" onclick="closeFullscreen()">&times;</span>
+    <img class="modal-content" id="modalImage">
+  </div>
+
+  <script>
+    function openFullscreen(src) {
+      const modal = document.getElementById("imageModal");
+      const modalImg = document.getElementById("modalImage");
+
+      modal.style.display = "block";
+      modalImg.src = src;
+    }
+
+    function closeFullscreen() {
+      const modal = document.getElementById("imageModal");
+      modal.style.display = "none";
+    }
+
+    // Optional: close when pressing Esc
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeFullscreen();
+    });
+  </script>
+</body>
+</html>
+

@@ -1,102 +1,55 @@
 body {
-  font-family: Arial, sans-serif;
-  background: linear-gradient(to right, #190162, #080808);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #190162, #080808);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
 }
 
 .login-container {
-  background: white;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-  width: 300px;
+    background: #121212;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
 }
 
 h1 {
-  text-align: center;
-  margin-bottom: 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: white;
 }
 
 label {
-  font-weight: bold;
-  display: block;
-  margin: 10px 0 5px;
+    font-weight: bold;
+    display: block;
+    margin: 10px 0 5px;
+    color: white;
 }
 
-input[type="text"],
-input[type="password"] {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #121212;
+    color: white;
 }
 
 input[type="submit"] {
-  background: #00c6fb;
-  color: white;
-  border: none;
-  padding: 10px;
-  margin-top: 15px;
-  width: 100%;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
+    background: #190162;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin-top: 15px;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
 }
 
-.forgot-password {
-  text-align: center;
-  margin-top: 10px;
-}
-
-.forgot-password a {
-  text-decoration: none;
-  color: #007BFF;
-  font-size: 0.9em;
-}
-
-.forgot-password a:hover {
-  text-decoration: underline;
-}
-
-.flash-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  position: absolute;
-  top: 30px;
-}
-
-.flash-message {
-  padding: 12px 20px;
-  border-radius: 5px;
-  font-size: 14px;
-  text-align: center;
-  width: fit-content;
-  min-width: 300px;
-  max-width: 600px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-}
-
-/* Flash categories */
-.flash-message.info {
-  background-color: #e0f4ff;
-  color: #0077b6;
-  border: 1px solid #90e0ef;
-}
-
-.flash-message.success {
-  background-color: #e7fbe7;
-  color: #2e7d32;
-  border: 1px solid #81c784;
-}
-
-.flash-message.error {
-  background-color: #ffe0e0;
-  color: #d32f2f;
-  border: 1px solid #ef9a9a;
+input[type="submit"]:hover {
+    background: #2d1391;
 }

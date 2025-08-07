@@ -1,0 +1,108 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #190162, #080808);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.appointment-container {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin: 10px 0 5px;
+}
+
+input[type="text"],
+input[type="date"],
+select {
+    width: 100%;
+    padding: 0.6rem;
+    margin-top: 0.3rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: Arial, sans-serif;
+    color: #2c3e50;
+}
+
+.time-slots {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.time-slots label {
+    cursor: pointer;
+}
+
+.time-slots input[type="radio"] {
+    display: none;
+}
+
+.time-slots span {
+    display: inline-block;
+    padding: 0.5rem 0.8rem;
+    border-radius: 5px;
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    transition: background-color 0.3s ease;
+}
+
+.time-slots input[type="radio"]:checked + span {
+    background-color: #3498db;
+    color: white;
+    font-weight: bold;
+}
+
+.time-slots input[type="radio"]:disabled + span {
+    background-color: #e74c3c;
+    color: white;
+    cursor: not-allowed;
+}
+
+button {
+    background: #00c6fb;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin-top: 20px;
+    width: 100%;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.flash {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.flash.success {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.flash.error {
+    background-color: #e74c3c;
+    color: white;
+}

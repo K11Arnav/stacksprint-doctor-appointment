@@ -3,7 +3,9 @@ from dotenv import load_dotenv
 from datetime import date
 import os
 import mysql.connector
-from mysql.connector import IntegrityError
+import smtplib
+import secrets
+from email.message import EmailMessage
 
 load_dotenv()
 
@@ -15,7 +17,7 @@ conn = mysql.connector.connect(
 )
 cursor=conn.cursor()
 
-app=Flask(_name_)
+app=Flask(__name__)
 app.secret_key = 'your_secret_key'
 @app.route('/')
 def home():
@@ -62,9 +64,6 @@ def register():
 
         return redirect(url_for('login', msg="User registered successfully"))
     return render_template('register.html')
-
-from flask import render_template, request, flash
-from datetime import date
 
 @app.route('/appointment', methods=['GET', 'POST'])
 def appointment():
@@ -152,7 +151,137 @@ def search():
 
     return render_template('search_results.html', query=query, results=results)
 
-if _name_ == '_main_':
+@app.route('/prescriptions')
+def prescriptions():
+    if 'username' not in session:
+        flash("Please log in to view prescriptions.", "error")
+        return redirect(url_for('login'))
+
+    username = session['username']
+    cursor.execute("SELECT filename FROM Prescriptions WHERE username = %s", (username,))
+    prescriptions = cursor.fetchall()
+
+    return render_template('prescriptions.html', prescriptions=prescriptions)
+
+def send_reset_email(to_email, reset_link):
+    sender_email = "clinikart.ss@gmail.com"
+    sender_password = "pezsatwkkxlmidue"
+
+    subject = "Password Reset Link"
+    body = f"Click the link to reset your password:\n\n{reset_link}"
+    email_text = f"Subject: {subject}\n\n{body}"
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, to_email, email_text)
+    except Exception as e:
+        print("Email sending failed:", e)
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email']
+        cursor.execute("SELECT * FROM test_info_users WHERE email_id = %s", (email,))
+        user = cursor.fetchone()
+
+        if user:
+            token = secrets.token_urlsafe(16)
+            cursor.execute("UPDATE test_info_users SET reset_token = %s WHERE email_id = %s", (token, email))
+            conn.commit()
+
+            reset_url = url_for('reset_password', token=token, _external=True)
+            send_reset_email(email, reset_url)
+
+        flash('If the email exists, a reset link has been sent.', 'info')
+        return redirect(url_for('login'))
+
+    return render_template('forgot_password.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    cursor.execute("SELECT * FROM test_info_users WHERE reset_token = %s", (token,))
+    user = cursor.fetchone()
+
+    if not user:
+        return "Invalid or expired token.", 400
+
+    if request.method == 'POST':
+        new_password = request.form['new_password']
+        cursor.execute("UPDATE test_info_users SET password = %s, reset_token = NULL WHERE reset_token = %s",
+                       (new_password, token))
+        conn.commit()
+        return "Password updated successfully!"
+
+    return render_template('reset_password.html')
+
+# users_db = {
+#     "user@example.com": {
+#         "password": "hashedpassword123",
+#         "reset_token": None
+#     }
+# }
+
+
+# @app.route('/forgot-password', methods=['GET', 'POST'])
+# def forgot_password():
+#     if request.method == 'POST':
+#         email = request.form['email']
+#         user = users_db.get(email)
+
+#         if user:
+#             # Generate token and "save" it
+#             token = secrets.token_urlsafe(16)
+#             user['reset_token'] = token
+
+#             # Build reset URL
+#             reset_url = url_for('reset_password', token=token, _external=True)
+
+#             # Send email
+#             send_reset_email(email, reset_url)
+
+#         # Show message whether or not email exists (to prevent info leak)
+#         flash('If the email exists, a reset link has been sent.', 'info')
+#         return redirect(url_for('login'))  # Redirect to login
+
+
+# def send_reset_email(to_email, reset_link):
+#     sender_email = "clinikart.ss@gmail.com"
+#     sender_password = "scrypt:32768:8:1$DAZn6QfcTQcwBk53$87071f1ea1580f937d71402a55cdd61b705ae2aa11e47ae971a868ad81fd217167643566df8cce553213aa6bd4b382ef22c396db13fb11bcf7a737034ab7ea57"
+
+#     subject = "Password Reset Link"
+#     body = f"Click the link to reset your password: {reset_link}"
+#     email_text = f"Subject: {subject}\n\n{body}"
+
+#     try:
+#         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+#             server.login(sender_email, sender_password)
+#             server.sendmail(sender_email, to_email, email_text)
+#     except Exception as e:
+#         print("Email sending failed:", e)
+
+# @app.route('/reset-password/<token>', methods=['GET', 'POST'])
+# def reset_password(token):
+#     # Find user with this token
+#     email = None
+#     for u_email, u_data in users_db.items():
+#         if u_data['reset_token'] == token:
+#             email = u_email
+#             break
+
+#     if not email:
+#         return "Invalid or expired token.", 400
+
+#     if request.method == 'POST':
+#         new_password = request.form['new_password']
+#         # Save new password (you should hash it in real apps)
+#         users_db[email]['password'] = new_password
+#         users_db[email]['reset_token'] = None
+#         return "Password updated successfully!"
+
+#     return render_template('reset_password.html')
+
+if __name__ == '__main__':
     app.run(debug=True)
 
 print("Host:", os.getenv("DB_HOST"))

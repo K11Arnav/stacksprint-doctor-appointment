@@ -2,28 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Appointment Booking</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='appointment.css') }}">
+    <title>Book Appointment</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/appointment.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h2>Book New Appointment</h2>
+    <div class="appointment-container">
+        <h2>Book Appointment</h2>
 
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-          {% endif %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
         {% endwith %}
 
         <form action="/appointment" method="post">
-            <!-- Date first -->
             <label for="date">Date:</label>
             <input type="date" id="date" name="date" min="{{ current_date }}" value="{{ selected_date or current_date }}" required>
 
-            <!-- Clinic Dropdown -->
             <label for="clinic">Clinic:</label>
             <select name="clinic" required onchange="this.form.submit()">
                 <option value="">-- Select Clinic --</option>
@@ -32,35 +30,34 @@
                 {% endfor %}
             </select>
 
-            <!-- Doctor Dropdown -->
             {% if doctors %}
                 <label for="doctor">Doctor:</label>
                 <select name="doctor" required onchange="this.form.submit()">
                     <option value="">-- Select Doctor --</option>
                     {% for doctor in doctors %}
-                         <option value="{{ doctor }}" {% if doctor == selected_doctor %}selected{% endif %}>{{ doctor }}</option>
+                        <option value="{{ doctor }}" {% if doctor == selected_doctor %}selected{% endif %}>{{ doctor }}</option>
                     {% endfor %}
                 </select>
             {% endif %}
 
-
-            <div class="time-slots">
-                {% for hour in range(8, 20) %}
-                     {% for minute in [0, 30] %}
-                        {% set time_slot = "%02d:%02d"|format(hour, minute) %}
-                         <label>
-                            <input type="radio" name="time" value="{{ time_slot }}"
-                                {% if time_slot in booked_slots %}disabled{% endif %}>
-                            <span>{{ time_slot }}</span>
-                        </label>
-                     {% endfor %}
-                {% endfor %}
-             <label>
-                <input type="radio" name="time" value="20:00" {% if "20:00" in booked_slots %}disabled{% endif %}>
-                <span>20:00</span>
-             </label>
-            </div>
-
+            {% if selected_clinic and selected_doctor and selected_date %}
+                <div class="time-slots">
+                    {% for hour in range(8, 20) %}
+                        {% for minute in [0, 30] %}
+                            {% set time_slot = "%02d:%02d"|format(hour, minute) %}
+                            <label>
+                                <input type="radio" name="time" value="{{ time_slot }}"
+                                    {% if time_slot in booked_slots %}disabled{% endif %}>
+                                <span>{{ time_slot }}</span>
+                            </label>
+                        {% endfor %}
+                    {% endfor %}
+                    <label>
+                        <input type="radio" name="time" value="20:00" {% if "20:00" in booked_slots %}disabled{% endif %}>
+                        <span>20:00</span>
+                    </label>
+                </div>
+            {% endif %}
 
             <button type="submit">Book Appointment</button>
         </form>

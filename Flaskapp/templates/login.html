@@ -1,49 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
 
-  <!-- Flash messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flash-container">
-        {% for category, message in messages %}
-          <div class="flash-message {{ category }}">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
+    <div class="login-container">
+        <h1>Login</h1>
+        <form method="POST" action="/login">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" required>
 
-  <!-- Login box -->
-  <div class="login-container">
-    <h1>Login</h1>
-    <form method="POST" action="/login">
-      <label for="username">Username</label>
-      <input id="username" name="username" type="text" required />
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required>
 
-      <label for="password">Password</label>
-      <input id="password" name="password" type="password" required />
+            <input type="submit" value="Login">
 
-      <input type="submit" value="Login" />
-    </form>
-
-    <!-- Forgot password link -->
-    <div class="forgot-password">
-      <a href="/forgot-password">Forgot password?</a>
+            <!-- Forgot Password Link -->
+            <p style="text-align: right; margin-top: 10px;">
+                <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+            </p>
+        </form>
     </div>
-  </div>
-
-  <script>
-    setTimeout(() => {
-      const flash = document.querySelector('.flash-message');
-      if (flash) flash.style.display = 'none';
-    }, 4000);
-  </script>
 
 </body>
 </html>
+
