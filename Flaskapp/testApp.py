@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from datetime import date
 import os
 import mysql.connector
+from mysql.connector import IntegrityError
 
 load_dotenv()
 
@@ -62,39 +63,69 @@ def register():
         return redirect(url_for('login', msg="User registered successfully"))
     return render_template('register.html')
 
-@app.route('/appointment', methods=['GET','POST'])
+from flask import render_template, request, flash
+from datetime import date
+
+@app.route('/appointment', methods=['GET', 'POST'])
 def appointment():
-     today = date.today().isoformat()
-     selected_clinic = None
-     selected_doctor = None
-     selected_date = None
-     clinics = []
-     doctors = []
-     booked_slots = []
-     cursor.execute("SELECT DISTINCT Clinic FROM Doctors")
-     clinics = [row[0] for row in cursor.fetchall()]
-     if request.method == 'POST':
-        selected_date = request.form['date']
-        selected_clinic = request.form['clinic']
-        time = request.form['time']
-        selected_doctor = request.form['doctor']
-        if selected_clinic and selected_doctor:
-            cursor.execute("SELECT Doctor FROM Doctors WHERE clinic = %s", (selected_clinic,))
+    today = date.today().isoformat()
+    selected_clinic = None
+    selected_doctor = None
+    selected_date = today
+    clinics = []
+    doctors = []
+    booked_slots = []
+
+    # Get list of all available clinics
+    cursor.execute("SELECT DISTINCT Clinic FROM Doctors")
+    clinics = [row[0] for row in cursor.fetchall()]
+
+    if request.method == 'POST':
+        selected_clinic = request.form.get('clinic')
+        selected_doctor = request.form.get('doctor')
+        selected_date = request.form.get('date')
+        time = request.form.get('time')
+
+        # Get list of doctors for selected clinic
+        if selected_clinic:
+            cursor.execute("SELECT Doctor FROM Doctors WHERE Clinic = %s", (selected_clinic,))
             doctors = [row[0] for row in cursor.fetchall()]
-            cursor.execute("SELECT ATime FROM Appointment WHERE ADate = %s AND Clinic = %s", (selected_date, selected_clinic))
-            booked_slots = [row[0] for row in cursor.fetchall()]
-            return render_template('appointment.html', current_date=today, clinics=clinics, selected_clinic=selected_clinic, doctors=doctors, selected_date=selected_date, booked_slots=booked_slots)
-        if selected_clinic and selected_doctor and time:
-            sql="INSERT INTO Appointment (ADate,ATime,Doctor,Clinic) VALUES (%s,%s,%s,%s)"
-            values=(selected_date,time,selected_doctor, selected_clinic)
-            cursor.execute(sql,values)
-            conn.commit()
-            flash("Appointment booked!")
-     cursor.execute("SELECT ATime FROM Appointment WHERE ADate = %s", (today,))
-     if selected_date and selected_clinic and selected_doctor:
-        cursor.execute("SELECT ATime FROM Appointment WHERE ADate = %s AND Clinic = %s AND Doctor = %s",(selected_date, selected_clinic, selected_doctor))
+
+        # Only insert if all fields are filled
+        if selected_clinic and selected_doctor and selected_date and time:
+            # Check if the slot already exists in DB
+            cursor.execute("""
+                SELECT 1 FROM Appointment 
+                WHERE ADate = %s AND ATime = %s AND Clinic = %s AND Doctor = %s
+            """, (selected_date, time, selected_clinic, selected_doctor))
+
+            if cursor.fetchone():
+                flash("Appointment already booked", "error")
+            else:
+                cursor.execute("""
+                    INSERT INTO Appointment (ADate, ATime, Doctor, Clinic)
+                    VALUES (%s, %s, %s, %s)
+                """, (selected_date, time, selected_doctor, selected_clinic))
+                conn.commit()
+                flash("Appointment booked successfully!", "success")
+
+    # Always refresh booked slots to show red immediately
+    if selected_clinic and selected_doctor and selected_date:
+        cursor.execute("""
+            SELECT ATime FROM Appointment 
+            WHERE ADate = %s AND Clinic = %s AND Doctor = %s
+        """, (selected_date, selected_clinic, selected_doctor))
         booked_slots = [row[0] for row in cursor.fetchall()]
-     return render_template('appointment.html', current_date=today, booked_slots=booked_slots, clinics=clinics, selected_clinic=selected_clinic, doctors=doctors,  selected_date=selected_date)
+
+    return render_template('appointment.html',
+                           current_date=today,
+                           clinics=clinics,
+                           doctors=doctors,
+                           selected_clinic=selected_clinic,
+                           selected_doctor=selected_doctor,
+                           selected_date=selected_date,
+                           booked_slots=booked_slots)
+
 
 @app.route('/dashboard')
 def dashboard():

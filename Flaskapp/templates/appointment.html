@@ -33,10 +33,10 @@
 
         input[type="date"],
         select {
-                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    font-size: 1rem;
-                    font-weight: 400;  
-                    color: #2c3e50;  
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 1rem;
+            font-weight: 400;  
+            color: #2c3e50;  
         }   
 
         label {
@@ -65,35 +65,38 @@
         }
 
         .time-slots label {
-            background-color: #ecf0f1;
             padding: 0.5rem 0.8rem;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s ease-in-out;
             user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .time-slots input[type="radio"] {
-            margin-right: 6px;
+            display: none;
         }
 
-        .time-slots input[type="radio"]:disabled + span {
-            color: #bdc3c7;
-            cursor: not-allowed;
-        }
-
-        .time-slots input[type="radio"]:disabled + span {
-            color: #999;
-            background-color: #e0e0e0;
+        .time-slots span {
             padding: 0.5rem 0.8rem;
             border-radius: 6px;
-            cursor: not-allowed;
-        } 
-
-        .time-slots input[type="radio"]:not(:disabled) + span {
-            font-weight: 500;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            transition: all 0.2s ease-in-out;
         }
 
+        .time-slots input[type="radio"]:checked + span {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+
+        .time-slots input[type="radio"]:disabled + span {
+            background-color: #e74c3c; /* Red for booked */
+            color: white;
+            cursor: not-allowed;
+        }
 
         button {
             display: block;
@@ -112,16 +115,43 @@
         button:hover {
             background-color: #2980b9;
         }
+
+        .flash {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+        }
+
+        .flash.success {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .flash.error {
+            background-color: #e74c3c;
+            color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Book New Appointment</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
         <form action="/appointment" method="post">
-            <!-- Date first -->
+            <!-- Date -->
             <label for="date">Date:</label>
             <input type="date" id="date" name="date" min="{{ current_date }}" value="{{ selected_date or current_date }}" required>
 
+            <!-- Clinic Dropdown -->
             <label for="clinic">Clinic:</label>
             <select name="clinic" required onchange="this.form.submit()">
                 <option value="">-- Select Clinic --</option>
@@ -130,34 +160,37 @@
                 {% endfor %}
             </select>
 
+            <!-- Doctor Dropdown -->
             {% if doctors %}
                 <label for="doctor">Doctor:</label>
-                <select name="doctor" required>
+                <select name="doctor" required onchange="this.form.submit()">
                     <option value="">-- Select Doctor --</option>
                     {% for doctor in doctors %}
-                         <option value="{{ doctor }}">{{ doctor }}</option>
+                         <option value="{{ doctor }}" {% if doctor == selected_doctor %}selected{% endif %}>{{ doctor }}</option>
                     {% endfor %}
                 </select>
             {% endif %}
 
-
-            <div class="time-slots">
-                {% for hour in range(8, 20) %}
-                     {% for minute in [0, 30] %}
-                        {% set time_slot = "%02d:%02d"|format(hour, minute) %}
-                         <label>
-                            <input type="radio" name="time" value="{{ time_slot }}"
-                                {% if time_slot in booked_slots %}disabled{% endif %}>
-                            <span>{{ time_slot }}</span>
-                        </label>
-                     {% endfor %}
-                {% endfor %}
-             <label>
-                <input type="radio" name="time" value="20:00" {% if "20:00" in booked_slots %}disabled{% endif %}>
-                <span>20:00</span>
-             </label>
-            </div>
-
+            <!-- Time Slots -->
+            {% if selected_clinic and selected_doctor and selected_date %}
+                <div class="time-slots">
+                    {% for hour in range(8, 20) %}
+                        {% for minute in [0, 30] %}
+                            {% set time_slot = "%02d:%02d"|format(hour, minute) %}
+                            <label>
+                                <input type="radio" name="time" value="{{ time_slot }}"
+                                    {% if time_slot in booked_slots %}disabled{% endif %}>
+                                <span>{{ time_slot }}</span>
+                            </label>
+                        {% endfor %}
+                    {% endfor %}
+                    <!-- Last slot 20:00 -->
+                    <label>
+                        <input type="radio" name="time" value="20:00" {% if "20:00" in booked_slots %}disabled{% endif %}>
+                        <span>20:00</span>
+                    </label>
+                </div>
+            {% endif %}
 
             <button type="submit">Book Appointment</button>
         </form>
