@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Results</title>
+</head>
+<body>
+    <h2>Search Results for "{{ query }}"</h2>
+<ul>
+    {% for doctor in results %}
+        <li>
+            Name: {{ doctor[0] }}<br>
+            Clinic: {{ doctor[1] }}<br>
+            Email: {{ doctor[2] }}<br>
+            Contact: {{ doctor[3] }}
+        </li>
+    {% endfor %}
+</ul>
+
+    <a href="/dashboard">Back to Dashboard</a>
+</body>
+</html>
+

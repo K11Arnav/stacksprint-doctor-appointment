@@ -106,7 +106,8 @@ def dashboard():
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('query')
-    print(f"Search query: {query}")  
+    print(f"Search query: {query}")  # Check if this prints in terminal
+
     conn = mysql.connector.connect(
         host=os.getenv("DB_HOST"),
         user=os.getenv("DB_USER"),
@@ -133,15 +134,24 @@ users_db = {
 @app.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
-        email = request.form.get('email')
-        if email:
-            flash('If an account with that email exists, you''ll receive a password reset link shortly.', 'info')
-            return redirect(url_for('login')) 
-        else:
-            flash('Please enter a valid email.', 'error')
-            return redirect(url_for('forgot_password')) 
+        email = request.form['email']
+        user = users_db.get(email)
 
-    return render_template('forgot_password.html')
+        if user:
+            # Generate token and "save" it
+            token = secrets.token_urlsafe(16)
+            user['reset_token'] = token
+
+            # Build reset URL
+            reset_url = url_for('reset_password', token=token, _external=True)
+
+            # Send email
+            send_reset_email(email, reset_url)
+
+        # Show message whether or not email exists (to prevent info leak)
+        flash('If the email exists, a reset link has been sent.', 'info')
+        return redirect(url_for('login'))  # Redirect to login
+
 
 def send_reset_email(to_email, reset_link):
     sender_email = "youremail@example.com"
@@ -160,6 +170,7 @@ def send_reset_email(to_email, reset_link):
 
 @app.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
+    # Find user with this token
     email = None
     for u_email, u_data in users_db.items():
         if u_data['reset_token'] == token:
@@ -171,6 +182,7 @@ def reset_password(token):
 
     if request.method == 'POST':
         new_password = request.form['new_password']
+        # Save new password (you should hash it in real apps)
         users_db[email]['password'] = new_password
         users_db[email]['reset_token'] = None
         return "Password updated successfully!"
