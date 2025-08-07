@@ -3,161 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <title>Doctor Appointment Dashboard</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      background-color: #f4f4f4;
-    }
-
-    header {
-      background-color: #1976d2;
-      color: white;
-      padding: 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    header .title {
-      font-size: 1.5rem;
-    }
-
-    header .logout-btn {
-      background-color: #e53935;
-      color: white;
-      padding: 8px 15px;
-      border: none;
-      border-radius: 5px;
-      text-decoration: none;
-      font-size: 14px;
-      margin-right: 10px;
-    }
-
-    .container {
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .top-bar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-    }
-
-    .btn {
-      background-color: #2196f3;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      text-decoration: none;
-      font-size: 16px;
-      transition: background-color 0.3s;
-    }
-
-    .btn:hover {
-      background-color: #1565c0;
-    }
-
-    .search-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .search-bar input {
-      padding: 8px 12px;
-      width: 250px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    .map-container {
-      margin-top: 20px;
-      max-width: 800px;
-      width: 100%;
-      height: 500px;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-      overflow: hidden;
-      background-color: white;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-
-    .tips-section {
-      margin-top: 30px;
-      max-width: 800px;
-      width: 100%;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 15px;
-    }
-
-    .tip-card {
-      background-color: white;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .tip-card h4 {
-      margin-top: 0;
-      color: #1976d2;
-    }
-
-    .tip-card p {
-      font-size: 14px;
-      color: #333;
-    }
-
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
 
   <header>
     <div class="title">Doctor Appointment Dashboard</div>
-    <a href="/logout" class="logout-btn">Logout</a>
+    <a href="/" class="logout-btn">Logout</a>
   </header>
 
   <div class="container">
 
     <div class="top-bar">
-  <div class="search-bar">
-    <input type="text" placeholder="Search doctor, clinic, or disease">
-    <button class="btn">Search</button>
-  </div>
+      <div class="search-bar">
+        <form method="get" action="{{ url_for('search') }}">
+          <input type="text" name="query" placeholder="Search doctor, clinic, or disease" required>
+          <button type="submit" class="btn">Search</button>
+        </form>
+      </div>
 
-  <a href="{{ url_for('appointment') }}" class="btn">Book an Appointment</a>
-</div>
+      <a href="{{ url_for('appointment') }}" class="btn">Book an Appointment</a>
+    </div>
 
     <div class="map-container">
-  <h3 style="text-align:center; padding: 10px 0;">Available Clinics (Map View)</h3>
-  <div style="position: relative; height: 500px; overflow: hidden; border-radius: 10px;">
-    <iframe
-      src="https://www.google.com/maps/d/u/0/embed?mid=1p_0sYbPMAjxdnOEVGKN3NAG9AV-cBRA&ehbc=2E312F"
-      style="position: absolute; top: -65px; left: 0; width: 100%; height: 600px; border: none;"
-      allowfullscreen=""
-      loading="lazy"
-      referrerpolicy="no-referrer-when-downgrade">
-    </iframe>
-    </div>
+      <h3>Available Clinics (Map View)</h3>
+      <div class="map-frame">
+        <iframe
+          src="https://www.google.com/maps/d/u/0/embed?mid=1p_0sYbPMAjxdnOEVGKN3NAG9AV-cBRA&ehbc=2E312F"
+          allowfullscreen
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
     </div>
 
-    <h3 style="margin-top: 40px; text-align: center;">Health Tips</h3>
+    <h3 class="tips-heading">Health Tips</h3>
     <div class="tips-section">
       <div class="tip-card">
         <h4>Stay Hydrated</h4>
-        <p>Drink at least 2–3 liters of water daily to stay energized and support your immune system.</p>
+        <p>Drink at least 2 to 3 liters of water daily to stay energized and support your immune system.</p>
       </div>
       <div class="tip-card">
         <h4>Regular Exercise</h4>
@@ -169,7 +53,7 @@
       </div>
       <div class="tip-card">
         <h4>Get Enough Sleep</h4>
-        <p>Aim for 7–8 hours of quality sleep to improve mental focus and reduce health risks.</p>
+        <p>Aim for 7 to 8 hours of quality sleep to improve mental focus and reduce health risks.</p>
       </div>
     </div>
 

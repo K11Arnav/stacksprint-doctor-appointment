@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from datetime import date
 import os
 import mysql.connector
+from mysql.connector import IntegrityError
 
 load_dotenv()
 
@@ -14,7 +15,7 @@ conn = mysql.connector.connect(
 )
 cursor=conn.cursor()
 
-app=Flask(__name__)
+app=Flask(_name_)
 app.secret_key = 'your_secret_key'
 @app.route('/')
 def home():
@@ -62,97 +63,96 @@ def register():
         return redirect(url_for('login', msg="User registered successfully"))
     return render_template('register.html')
 
+from flask import render_template, request, flash
+from datetime import date
+
 @app.route('/appointment', methods=['GET', 'POST'])
 def appointment():
     today = date.today().isoformat()
+    selected_clinic = None
+    selected_doctor = None
+    selected_date = today
+    clinics = []
+    doctors = []
+    booked_slots = []
+
+    # Get list of all available clinics
+    cursor.execute("SELECT DISTINCT Clinic FROM Doctors")
+    clinics = [row[0] for row in cursor.fetchall()]
 
     if request.method == 'POST':
-        doctor = request.form['doctor']
-        clinic = request.form['clinic']
-        adate = request.form['date']
-        time = request.form['time']
+        selected_clinic = request.form.get('clinic')
+        selected_doctor = request.form.get('doctor')
+        selected_date = request.form.get('date')
+        time = request.form.get('time')
 
-        sql = "INSERT INTO Appointment (ADate, ATime, Doctor, Clinic) VALUES (%s, %s, %s, %s)"
-        values = (adate, time, doctor, clinic)
-        cursor.execute(sql, values)
-        conn.commit()
-        flash("Appointment booked!")
+        # Get list of doctors for selected clinic
+        if selected_clinic:
+            cursor.execute("SELECT Doctor FROM Doctors WHERE Clinic = %s", (selected_clinic,))
+            doctors = [row[0] for row in cursor.fetchall()]
 
-    # --- booked slots for today ---
-    cursor.execute("SELECT ATime FROM Appointment WHERE ADate = %s", (today,))
-    result = cursor.fetchall()
-    # mysql.connector returns tuples by default; adapt if you use dict cursor
-    booked_slots = [row[0] for row in result]
+        # Only insert if all fields are filled
+        if selected_clinic and selected_doctor and selected_date and time:
+            # Check if the slot already exists in DB
+            cursor.execute("""
+                SELECT 1 FROM Appointment 
+                WHERE ADate = %s AND ATime = %s AND Clinic = %s AND Doctor = %s
+            """, (selected_date, time, selected_clinic, selected_doctor))
 
-    # --- fetch doctors with ratings ---
-    cursor.execute("SELECT DName, rating, review_count FROM doctor")
-    doctors = cursor.fetchall()   # list of tuples like [(DName, rating, review_count), ...]
-    # If your cursor returns dicts, adapt indexes to keys.
+            if cursor.fetchone():
+                flash("Appointment already booked", "error")
+            else:
+                cursor.execute("""
+                    INSERT INTO Appointment (ADate, ATime, Doctor, Clinic)
+                    VALUES (%s, %s, %s, %s)
+                """, (selected_date, time, selected_doctor, selected_clinic))
+                conn.commit()
+                flash("Appointment booked successfully!", "success")
 
-    # Build doctor dropdown HTML (no Jinja loop needed)
-    doctor_options_html = '<option value="">-- Select Doctor --</option>'
-    for d in doctors:
-        name = d[0]
-        rating = d[1] or 0
-        rc = d[2] or 0
-        doctor_options_html += f'<option value="{name}">{name} - {rating:.1f}★ ({rc} reviews)</option>'
+    # Always refresh booked slots to show red immediately
+    if selected_clinic and selected_doctor and selected_date:
+        cursor.execute("""
+            SELECT ATime FROM Appointment 
+            WHERE ADate = %s AND Clinic = %s AND Doctor = %s
+        """, (selected_date, selected_clinic, selected_doctor))
+        booked_slots = [row[0] for row in cursor.fetchall()]
 
-    # --- fetch upcoming appointments (example shows all patients; if you filter by session add WHERE patient_id=...) ---
-    cursor.execute("""
-        SELECT ADate, ATime, Doctor, Clinic, status
-        FROM Appointment
-        WHERE ADate >= %s
-        ORDER BY ADate, ATime
-    """, (today,))
-    appts = cursor.fetchall()   # list of tuples
+    return render_template('appointment.html',
+                           current_date=today,
+                           clinics=clinics,
+                           doctors=doctors,
+                           selected_clinic=selected_clinic,
+                           selected_doctor=selected_doctor,
+                           selected_date=selected_date,
+                           booked_slots=booked_slots)
 
-    # Build a quick lookup dict for doctor ratings to show alongside appointments
-    doctor_rating_map = { d[0]: (d[1] or 0, d[2] or 0) for d in doctors }
-
-    # Build HTML rows for the appointments table (so template doesn't have to loop)
-    appointments_rows_html = ""
-    for a in appts:
-        # adapt indices if your cursor returns dicts: a['ADate'] etc.
-        a_date = a[0]
-        a_time = a[1]
-        a_doc = a[2]
-        a_clinic = a[3]
-        a_status = a[4]
-        rating, rc = doctor_rating_map.get(a_doc, (None, 0))
-        if rating is None or rating == 0:
-            rating_html = '<span class="small">No rating</span>'
-        else:
-            rating_html = f'<strong style="color:#e74c3c">{rating:.1f}</strong> ★ <span class="small">({rc})</span>'
-
-        appointments_rows_html += (
-            "<tr>"
-            f"<td>{a_date}</td>"
-            f"<td>{a_time}</td>"
-            f"<td>{a_doc}</td>"
-            f"<td>{a_clinic}</td>"
-            f"<td>{rating_html}</td>"
-            f"<td>{a_status}</td>"
-            "</tr>"
-        )
-
-    return render_template(
-        'appointment.html',
-        current_date=today,
-        booked_slots=booked_slots,
-        doctor_options=doctor_options_html,
-        appointments_rows=appointments_rows_html
-    )
 
 @app.route('/dashboard')
 def dashboard():
-    appointments = [
-        {"date": "2025-08-05", "time": "10:00", "doctor": "Dr. Rao", "clinic": "Clinic A", "status": "Confirmed"},
-        {"date": "2025-08-07", "time": "14:30", "doctor": "Dr. Shah", "clinic": "Clinic B", "status": "Pending"},
-    ]
-    return render_template("dashboard.html", appointments=appointments)
+    return render_template('dashboard.html')
 
+@app.route('/search', methods=['GET'])
+def search():
+    query = request.args.get('query')
+    print(f"Search query: {query}")  # Check if this prints in terminal
 
-if __name__ == '__main__':
+    conn = mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
+    )
+    cursor = conn.cursor()
+    sql = "SELECT * FROM doc_info WHERE DName LIKE %s OR DClinic LIKE %s"
+    val = ('%' + query + '%', '%' + query + '%')
+    cursor.execute(sql, val)
+    results = cursor.fetchall()
+
+    print(f"Results: {results}") 
+
+    return render_template('search_results.html', query=query, results=results)
+
+if _name_ == '_main_':
     app.run(debug=True)
 
 print("Host:", os.getenv("DB_HOST"))

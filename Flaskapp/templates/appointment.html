@@ -1,41 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title> 
-        Appointment Booking
-    </title>
+    <meta charset="UTF-8">
+    <title>Appointment Booking</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='appointment.css') }}">
 </head>
 <body>
-    <h2 style="margin-top: 3rem;">Book New Appointment</h2>
-    <form action="/appointment" method="post" style="background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-        <label for="doctor">Doctor:</label><br>
-        <input type="text" id="doctor" name="doctor" required><br><br>
-        <label for="clinic">Clinic:</label><br>
-        <select id="clinic" name="clinic" required>
-            <option value="">-- Select Clinic --</option>
-            <option value="Clinic A">Clinic A</option>
-            <option value="Clinic B">Clinic B</option>
-            <option value="Clinic C">Clinic C</option>
-        </select><br><br>
-        <label for="date">Date:</label><br>
-        <input type="date" id="date" name="date" min="{{ current_date }}" required><br><br>
-        <label>Select Time Slot:</label><br>
-        {% for hour in range(8, 20) %}  {# From 8 AM to 7:30 PM #}
-            {% for minute in [0, 30] %}
-                {% set time_slot = "%02d:%02d"|format(hour, minute) %}
-                 <label style="display: inline-block; margin: 5px;">
-                    <input type="radio" name="time" value="{{ time_slot }}" 
-                        {% if time_slot in booked_slots %}disabled{% endif %}>
-                    {{ time_slot }}
-                </label>
+    <div class="container">
+        <h2>Book New Appointment</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
             {% endfor %}
-        {% endfor %}
-        <label style="display: inline-block; margin: 5px;">
-            <input type="radio" name="time" value="20:00" {% if "20:00" in booked_slots %}disabled{% endif %}>
-            20:00
-        </label>
-        <br><br>
-        <button type="submit" style="padding: 0.5rem 1rem; background: #2c3e50; color: white; border: none; border-radius: 4px;">Book</button>
-    </form>
+          {% endif %}
+        {% endwith %}
+
+        <form action="/appointment" method="post">
+            <!-- Date first -->
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" min="{{ current_date }}" value="{{ selected_date or current_date }}" required>
+
+            <!-- Clinic Dropdown -->
+            <label for="clinic">Clinic:</label>
+            <select name="clinic" required onchange="this.form.submit()">
+                <option value="">-- Select Clinic --</option>
+                {% for clinic in clinics %}
+                    <option value="{{ clinic }}" {% if clinic == selected_clinic %}selected{% endif %}>{{ clinic }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Doctor Dropdown -->
+            {% if doctors %}
+                <label for="doctor">Doctor:</label>
+                <select name="doctor" required onchange="this.form.submit()">
+                    <option value="">-- Select Doctor --</option>
+                    {% for doctor in doctors %}
+                         <option value="{{ doctor }}" {% if doctor == selected_doctor %}selected{% endif %}>{{ doctor }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+
+
+            <div class="time-slots">
+                {% for hour in range(8, 20) %}
+                     {% for minute in [0, 30] %}
+                        {% set time_slot = "%02d:%02d"|format(hour, minute) %}
+                         <label>
+                            <input type="radio" name="time" value="{{ time_slot }}"
+                                {% if time_slot in booked_slots %}disabled{% endif %}>
+                            <span>{{ time_slot }}</span>
+                        </label>
+                     {% endfor %}
+                {% endfor %}
+             <label>
+                <input type="radio" name="time" value="20:00" {% if "20:00" in booked_slots %}disabled{% endif %}>
+                <span>20:00</span>
+             </label>
+            </div>
+
+
+            <button type="submit">Book Appointment</button>
+        </form>
+    </div>
 </body>
 </html>

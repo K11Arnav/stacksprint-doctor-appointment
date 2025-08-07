@@ -1,78 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to right, #190162, #080808);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        label {
-            font-weight: bold;
-            display: block;
-            margin: 10px 0 5px;
-        }
-        input[type="text"], input[type="password"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        input[type="submit"] {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px;
-            margin-top: 15px;
-            width: 100%;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        input[type="submit"]{
-            background: #00c6fb;
-        }
-        .note {
-            text-align: center;
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #555;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
 
-    <div class="login-container">
-        <h1>Login</h1>
-        <form method="POST" action="/login">
-            <label for="username">Username</label>
-            <input id="username" name="username" type="text" required>
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-container">
+        {% for category, message in messages %}
+          <div class="flash-message {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
 
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password" required>
+  <!-- Login box -->
+  <div class="login-container">
+    <h1>Login</h1>
+    <form method="POST" action="/login">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" required />
 
-            <input type="submit" value="Login">
-        </form>
-       
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required />
+
+      <input type="submit" value="Login" />
+    </form>
+
+    <!-- Forgot password link -->
+    <div class="forgot-password">
+      <a href="/forgot-password">Forgot password?</a>
     </div>
+  </div>
+
+  <script>
+    setTimeout(() => {
+      const flash = document.querySelector('.flash-message');
+      if (flash) flash.style.display = 'none';
+    }, 4000);
+  </script>
 
 </body>
 </html>
