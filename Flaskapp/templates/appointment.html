@@ -8,10 +8,22 @@
 <body>
     <div class="container">
         <h2>Book New Appointment</h2>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
         <form action="/appointment" method="post">
+            <!-- Date first -->
             <label for="date">Date:</label>
             <input type="date" id="date" name="date" min="{{ current_date }}" value="{{ selected_date or current_date }}" required>
 
+            <!-- Clinic Dropdown -->
             <label for="clinic">Clinic:</label>
             <select name="clinic" required onchange="this.form.submit()">
                 <option value="">-- Select Clinic --</option>
@@ -20,15 +32,17 @@
                 {% endfor %}
             </select>
 
+            <!-- Doctor Dropdown -->
             {% if doctors %}
                 <label for="doctor">Doctor:</label>
-                <select name="doctor" required>
+                <select name="doctor" required onchange="this.form.submit()">
                     <option value="">-- Select Doctor --</option>
                     {% for doctor in doctors %}
-                         <option value="{{ doctor }}">{{ doctor }}</option>
+                         <option value="{{ doctor }}" {% if doctor == selected_doctor %}selected{% endif %}>{{ doctor }}</option>
                     {% endfor %}
                 </select>
             {% endif %}
+
 
             <div class="time-slots">
                 {% for hour in range(8, 20) %}
@@ -46,6 +60,7 @@
                 <span>20:00</span>
              </label>
             </div>
+
 
             <button type="submit">Book Appointment</button>
         </form>
