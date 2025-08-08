@@ -50,13 +50,17 @@
 <body>
   <h1>Prescription Viewer</h1>
 
-  {% for p in prescriptions %}
-    <div class="prescription">
-      <img src="{{ url_for('static', filename='prescriptions/' ~ p[0]) }}"
-           alt="Prescription"
-           onclick="openFullscreen('{{ url_for('static', filename='prescriptions/' ~ p[0]) }}')">
-    </div>
-  {% endfor %}
+  {% if prescriptions %}
+    {% for p in prescriptions %}
+      <div class="prescription">
+        <img src="{{ p }}"
+             alt="Prescription"
+             onclick="openFullscreen('{{ p }}')">
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No prescriptions found.</p>
+  {% endif %}
 
   <!-- Modal -->
   <div id="imageModal" class="modal" onclick="closeFullscreen()">
@@ -85,4 +89,3 @@
   </script>
 </body>
 </html>
-

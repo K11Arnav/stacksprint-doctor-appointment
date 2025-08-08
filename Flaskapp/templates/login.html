@@ -3,29 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login Choice</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
 
     <div class="login-container">
-        <h1>Login</h1>
-        <form method="POST" action="/login">
-            <label for="username">Username</label>
-            <input id="username" name="username" type="text" required>
+        <h1>Welcome to the Clinic</h1>
+        <p style="text-align:center; margin-bottom: 20px;">Please select your login type:</p>
 
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password" required>
-
-            <input type="submit" value="Login">
-
-            <!-- Forgot Password Link -->
-            <p style="text-align: right; margin-top: 10px;">
-                <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
-            </p>
+        <form>
+            <input type="button" value="Patient Login" style="background-color: #4CAF50; color: white;" onclick="window.location.href='/patient_login'">
+            <input type="button" value="Doctor Login" style="background-color: #1976d2; color: white;" onclick="window.location.href='/doctor_login'">
         </form>
     </div>
 
 </body>
 </html>
-

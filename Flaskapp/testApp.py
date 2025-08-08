@@ -6,6 +6,10 @@ import mysql.connector
 import smtplib
 import secrets
 from email.message import EmailMessage
+from datetime import datetime
+import calendar
+from collections import defaultdict
+
 
 load_dotenv()
 
@@ -19,35 +23,55 @@ cursor=conn.cursor()
 
 app=Flask(__name__)
 app.secret_key = 'your_secret_key'
+UPLOAD_DIR = r"C:\Users\vajra\Repositories\stacksprint-doctor-appointment\Flaskapp\static\prescriptions"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 @app.route('/')
 def home():
     return render_template('home.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    return render_template('login.html')
+
+@app.route('/patient_login', methods=['GET', 'POST'])
+def patient_login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        conn = mysql.connector.connect(
-            host=os.getenv("DB_HOST"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            database=os.getenv("DB_NAME")
-        )
-        cursor = conn.cursor()
+
         query = "SELECT * FROM test_info_users WHERE username=%s AND password=%s"
         cursor.execute(query, (username, password))
         user = cursor.fetchone()
-        cursor.close()
-        conn.close()
+
         if user:
-            session['username'] = user[0]  
-            flash("User login successful!")
+            session['username'] = user[0]
+            print("Session after login:", session) 
+            flash("User login successful!", "success")
             return redirect(url_for('dashboard'))
         else:
-            flash("Invalid username or password")
-    return render_template('login.html')
-    
+            flash("Invalid username or password", "error")
+
+    return render_template('patient_login.html')
+
+@app.route('/doctor_login', methods=['GET', 'POST'])
+def doctor_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        cursor.execute("SELECT * FROM Doctors WHERE username=%s AND password=%s", (username, password))
+        doctor = cursor.fetchone()
+
+        if doctor:
+            session['doctor_logged_in'] = True
+            session['doctor_username'] = username
+            flash("Doctor login successful!")
+            return redirect(url_for('doctor_dashboard'))
+        else:
+            return redirect(url_for('doctor_login', msg="Invalid Password or Username"))
+
+    return render_template('doctor_login.html')
+
 
 @app.route('/register', methods=['GET','POST'])
 def register():
@@ -65,6 +89,8 @@ def register():
         return redirect(url_for('login', msg="User registered successfully"))
     return render_template('register.html')
 
+from flask import session
+
 @app.route('/appointment', methods=['GET', 'POST'])
 def appointment():
     today = date.today().isoformat()
@@ -75,7 +101,12 @@ def appointment():
     doctors = []
     booked_slots = []
 
-    # Get list of all available clinics
+    # Get logged-in username from session
+    username = session.get('username')
+    if not username:
+        flash("Please log in to book an appointment.", "error")
+        return redirect(url_for('login'))  # Adjust 'login' to your login route
+
     cursor.execute("SELECT DISTINCT Clinic FROM Doctors")
     clinics = [row[0] for row in cursor.fetchall()]
 
@@ -85,30 +116,26 @@ def appointment():
         selected_date = request.form.get('date')
         time = request.form.get('time')
 
-        # Get list of doctors for selected clinic
         if selected_clinic:
             cursor.execute("SELECT Doctor FROM Doctors WHERE Clinic = %s", (selected_clinic,))
             doctors = [row[0] for row in cursor.fetchall()]
 
-        # Only insert if all fields are filled
         if selected_clinic and selected_doctor and selected_date and time:
             # Check if the slot already exists in DB
             cursor.execute("""
                 SELECT 1 FROM Appointment 
                 WHERE ADate = %s AND ATime = %s AND Clinic = %s AND Doctor = %s
             """, (selected_date, time, selected_clinic, selected_doctor))
-
             if cursor.fetchone():
                 flash("Appointment already booked", "error")
             else:
                 cursor.execute("""
-                    INSERT INTO Appointment (ADate, ATime, Doctor, Clinic)
-                    VALUES (%s, %s, %s, %s)
-                """, (selected_date, time, selected_doctor, selected_clinic))
+                    INSERT INTO Appointment (ADate, ATime, Doctor, Clinic, username)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, (selected_date, time, selected_doctor, selected_clinic, username))
                 conn.commit()
                 flash("Appointment booked successfully!", "success")
 
-    # Always refresh booked slots to show red immediately
     if selected_clinic and selected_doctor and selected_date:
         cursor.execute("""
             SELECT ATime FROM Appointment 
@@ -126,9 +153,70 @@ def appointment():
                            booked_slots=booked_slots)
 
 
+@app.route("/appointments_calendar")
+def appointments_calendar():
+    username = session.get("username")
+    if not username:
+        flash("Please log in to access the calendar.", "error")
+        return redirect(url_for("login"))
+
+    # Get year and month from query params or default to current month
+    year = request.args.get("year", type=int) or datetime.now().year
+    month = request.args.get("month", type=int) or datetime.now().month
+
+    # Query all appointments for user for this month
+    start_date = date(year, month, 1)
+    last_day = calendar.monthrange(year, month)[1]
+    end_date = date(year, month, last_day)
+
+    cursor.execute("""
+        SELECT ADate, ATime, Doctor, Clinic
+        FROM Appointment
+        WHERE username = %s AND ADate BETWEEN %s AND %s
+        ORDER BY ADate, ATime
+    """, (username, start_date, end_date))
+    appointments = cursor.fetchall()
+
+    # Organize appointments by day for easy lookup in template
+    appts_by_day = defaultdict(list)
+    for appt_date, appt_time, doctor, clinic in appointments:
+        # Safely format appointment time to "HH:MM"
+        if hasattr(appt_time, 'strftime'):
+            time_str = appt_time.strftime("%H:%M")
+        else:
+            time_str = str(appt_time)
+
+        appts_by_day[appt_date.day].append({
+            "time": time_str,
+            "doctor": doctor,
+            "clinic": clinic,
+        })
+
+    # Generate calendar for the month (list of weeks, each week is list of days)
+    cal = calendar.Calendar()
+    month_days = list(cal.itermonthdays(year, month))  # 0 means day outside month
+
+    # Chunk month_days into weeks of 7 days for rendering
+    weeks = [month_days[i:i+7] for i in range(0, len(month_days), 7)]
+
+    return render_template(
+        "appointments_calendar.html",
+        year=year,
+        month=month,
+        weeks=weeks,
+        appts_by_day=appts_by_day,
+        month_name=calendar.month_name[month]
+    )
+
+
+
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
+
+@app.route('/doctor_dashboard')
+def doctor_dashboard():
+    return render_template('doctor_dashboard.html')
 
 @app.route('/search', methods=['GET'])
 def search():
@@ -161,7 +249,13 @@ def prescriptions():
     cursor.execute("SELECT filename FROM Prescriptions WHERE username = %s", (username,))
     prescriptions = cursor.fetchall()
 
-    return render_template('prescriptions.html', prescriptions=prescriptions)
+    # Build static URLs
+    prescription_urls = [
+        url_for('static', filename=f'prescriptions/{row[0]}') for row in prescriptions
+    ]
+
+    return render_template('prescriptions.html', prescriptions=prescription_urls)
+
 
 def send_reset_email(to_email, reset_link):
     sender_email = "clinikart.ss@gmail.com"
@@ -215,71 +309,44 @@ def reset_password(token):
 
     return render_template('reset_password.html')
 
-# users_db = {
-#     "user@example.com": {
-#         "password": "hashedpassword123",
-#         "reset_token": None
-#     }
-# }
+@app.route("/upload_prescription", methods=["GET", "POST"])
+def upload_prescription():
+    if not session.get("doctor_logged_in"):
+        flash("Please log in as a doctor.", "error")
+        return redirect(url_for("doctor_login"))
 
+    if request.method == "POST":
+        patient_name = (request.form.get("patient_name") or "").strip()
+        file = request.files.get("prescription")
 
-# @app.route('/forgot-password', methods=['GET', 'POST'])
-# def forgot_password():
-#     if request.method == 'POST':
-#         email = request.form['email']
-#         user = users_db.get(email)
+        if not patient_name:
+            flash("Please enter patient name.", "error")
+            return redirect(request.url)
 
-#         if user:
-#             # Generate token and "save" it
-#             token = secrets.token_urlsafe(16)
-#             user['reset_token'] = token
+        if not file or file.filename == "":
+            flash("Please choose a file to upload.", "error")
+            return redirect(request.url)
 
-#             # Build reset URL
-#             reset_url = url_for('reset_password', token=token, _external=True)
+        original_filename = os.path.basename(file.filename)
+        final_path = os.path.join(UPLOAD_DIR, original_filename)
 
-#             # Send email
-#             send_reset_email(email, reset_url)
+        try:
+            file.save(final_path)
 
-#         # Show message whether or not email exists (to prevent info leak)
-#         flash('If the email exists, a reset link has been sent.', 'info')
-#         return redirect(url_for('login'))  # Redirect to login
+            cursor.execute(
+                "INSERT INTO Prescriptions (doctorname, username, filename, uploadtime) VALUES (%s, %s, %s, %s)",
+                (session.get("doctor_username"), patient_name, original_filename, datetime.now())
+            )
+            conn.commit()
 
+            flash(f"Prescription uploaded: {original_filename}", "success")
+            return redirect(url_for("doctor_dashboard"))
 
-# def send_reset_email(to_email, reset_link):
-#     sender_email = "clinikart.ss@gmail.com"
-#     sender_password = "scrypt:32768:8:1$DAZn6QfcTQcwBk53$87071f1ea1580f937d71402a55cdd61b705ae2aa11e47ae971a868ad81fd217167643566df8cce553213aa6bd4b382ef22c396db13fb11bcf7a737034ab7ea57"
+        except Exception as e:
+            flash("Upload failed: " + str(e), "error")
+            return redirect(request.url)
 
-#     subject = "Password Reset Link"
-#     body = f"Click the link to reset your password: {reset_link}"
-#     email_text = f"Subject: {subject}\n\n{body}"
-
-#     try:
-#         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-#             server.login(sender_email, sender_password)
-#             server.sendmail(sender_email, to_email, email_text)
-#     except Exception as e:
-#         print("Email sending failed:", e)
-
-# @app.route('/reset-password/<token>', methods=['GET', 'POST'])
-# def reset_password(token):
-#     # Find user with this token
-#     email = None
-#     for u_email, u_data in users_db.items():
-#         if u_data['reset_token'] == token:
-#             email = u_email
-#             break
-
-#     if not email:
-#         return "Invalid or expired token.", 400
-
-#     if request.method == 'POST':
-#         new_password = request.form['new_password']
-#         # Save new password (you should hash it in real apps)
-#         users_db[email]['password'] = new_password
-#         users_db[email]['reset_token'] = None
-#         return "Password updated successfully!"
-
-#     return render_template('reset_password.html')
+    return render_template("upload_prescription.html")
 
 if __name__ == '__main__':
     app.run(debug=True)

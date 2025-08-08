@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload Prescription</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <h1>Upload Prescription</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <label for="patient_name">Patient Name</label>
+            <input type="text" name="patient_name" id="patient_name" placeholder="Enter patient name" required>
+
+            <label for="prescription">Prescription File</label>
+            <input type="file" name="prescription" id="prescription" accept="image/*" required>
+
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+</body>
+</html>
+
+
