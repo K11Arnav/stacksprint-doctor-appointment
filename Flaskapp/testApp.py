@@ -89,7 +89,6 @@ def register():
         return redirect(url_for('login', msg="User registered successfully"))
     return render_template('register.html')
 
-from flask import session
 
 @app.route('/appointment', methods=['GET', 'POST'])
 def appointment():
@@ -105,8 +104,9 @@ def appointment():
     username = session.get('username')
     if not username:
         flash("Please log in to book an appointment.", "error")
-        return redirect(url_for('login'))  # Adjust 'login' to your login route
+        return redirect(url_for('login'))  # Adjust 'login' if your login route has a different name
 
+    # Get list of clinics
     cursor.execute("SELECT DISTINCT Clinic FROM Doctors")
     clinics = [row[0] for row in cursor.fetchall()]
 
@@ -116,12 +116,31 @@ def appointment():
         selected_date = request.form.get('date')
         time = request.form.get('time')
 
+        # If clinic selected, get doctors for that clinic
         if selected_clinic:
             cursor.execute("SELECT Doctor FROM Doctors WHERE Clinic = %s", (selected_clinic,))
             doctors = [row[0] for row in cursor.fetchall()]
 
         if selected_clinic and selected_doctor and selected_date and time:
-            # Check if the slot already exists in DB
+            # Get the doctor's username (duser) from Doctors table
+            cursor.execute("SELECT username FROM Doctors WHERE Doctor = %s AND Clinic = %s", 
+                           (selected_doctor, selected_clinic))
+            doctor_user_row = cursor.fetchone()
+            if doctor_user_row:
+                doctor_username = doctor_user_row[0]
+            else:
+                doctor_username = None
+                flash("Selected doctor username not found.", "error")
+                return render_template('appointment.html',
+                                       current_date=today,
+                                       clinics=clinics,
+                                       doctors=doctors,
+                                       selected_clinic=selected_clinic,
+                                       selected_doctor=selected_doctor,
+                                       selected_date=selected_date,
+                                       booked_slots=booked_slots)
+
+            # Check if the slot is already booked
             cursor.execute("""
                 SELECT 1 FROM Appointment 
                 WHERE ADate = %s AND ATime = %s AND Clinic = %s AND Doctor = %s
@@ -130,12 +149,13 @@ def appointment():
                 flash("Appointment already booked", "error")
             else:
                 cursor.execute("""
-                    INSERT INTO Appointment (ADate, ATime, Doctor, Clinic, username)
-                    VALUES (%s, %s, %s, %s, %s)
-                """, (selected_date, time, selected_doctor, selected_clinic, username))
+                    INSERT INTO Appointment (ADate, ATime, Doctor, Clinic, username, duser)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (selected_date, time, selected_doctor, selected_clinic, username, doctor_username))
                 conn.commit()
                 flash("Appointment booked successfully!", "success")
 
+    # After POST or on GET, if clinic, doctor and date selected, get booked slots for that doctor
     if selected_clinic and selected_doctor and selected_date:
         cursor.execute("""
             SELECT ATime FROM Appointment 
@@ -151,6 +171,68 @@ def appointment():
                            selected_doctor=selected_doctor,
                            selected_date=selected_date,
                            booked_slots=booked_slots)
+
+
+# @app.route('/appointment', methods=['GET', 'POST'])
+# def appointment():
+#     today = date.today().isoformat()
+#     selected_clinic = None
+#     selected_doctor = None
+#     selected_date = today
+#     clinics = []
+#     doctors = []
+#     booked_slots = []
+
+#     # Get logged-in username from session
+#     username = session.get('username')
+#     if not username:
+#         flash("Please log in to book an appointment.", "error")
+#         return redirect(url_for('login'))  # Adjust 'login' to your login route
+
+#     cursor.execute("SELECT DISTINCT Clinic FROM Doctors")
+#     clinics = [row[0] for row in cursor.fetchall()]
+
+#     if request.method == 'POST':
+#         selected_clinic = request.form.get('clinic')
+#         selected_doctor = request.form.get('doctor')
+#         selected_date = request.form.get('date')
+#         time = request.form.get('time')
+
+#         if selected_clinic:
+#             cursor.execute("SELECT Doctor FROM Doctors WHERE Clinic = %s", (selected_clinic,))
+#             doctors = [row[0] for row in cursor.fetchall()]
+
+#         if selected_clinic and selected_doctor and selected_date and time:
+#             # Check if the slot already exists in DB
+#             cursor.execute("""
+#                 SELECT 1 FROM Appointment 
+#                 WHERE ADate = %s AND ATime = %s AND Clinic = %s AND Doctor = %s
+#             """, (selected_date, time, selected_clinic, selected_doctor))
+#             if cursor.fetchone():
+#                 flash("Appointment already booked", "error")
+#             else:
+#                 cursor.execute("""
+#                     INSERT INTO Appointment (ADate, ATime, Doctor, Clinic, username)
+#                     VALUES (%s, %s, %s, %s, %s)
+#                 """, (selected_date, time, selected_doctor, selected_clinic, username))
+#                 conn.commit()
+#                 flash("Appointment booked successfully!", "success")
+
+#     if selected_clinic and selected_doctor and selected_date:
+#         cursor.execute("""
+#             SELECT ATime FROM Appointment 
+#             WHERE ADate = %s AND Clinic = %s AND Doctor = %s
+#         """, (selected_date, selected_clinic, selected_doctor))
+#         booked_slots = [row[0] for row in cursor.fetchall()]
+
+#     return render_template('appointment.html',
+#                            current_date=today,
+#                            clinics=clinics,
+#                            doctors=doctors,
+#                            selected_clinic=selected_clinic,
+#                            selected_doctor=selected_doctor,
+#                            selected_date=selected_date,
+#                            booked_slots=booked_slots)
 
 
 @app.route("/appointments_calendar")
@@ -208,7 +290,57 @@ def appointments_calendar():
         month_name=calendar.month_name[month]
     )
 
+@app.route("/doctor_appointments_calendar")
+def doctor_appointments_calendar():
+    doctor_username = session.get("doctor_username")
+    if not doctor_username:
+        flash("Doctor username missing from session.", "error")
+        return redirect(url_for("doctor_login"))
 
+    # Get year/month from query params or default to current
+    year = request.args.get("year", type=int) or datetime.now().year
+    month = request.args.get("month", type=int) or datetime.now().month
+
+    start_date = date(year, month, 1)
+    last_day = calendar.monthrange(year, month)[1]
+    end_date = date(year, month, last_day)
+
+    cursor.execute("""
+        SELECT ADate, ATime, username, Clinic
+        FROM Appointment
+        WHERE  duser = %s AND ADate BETWEEN %s AND %s
+        ORDER BY ADate, ATime
+    """, (doctor_username, start_date, end_date))
+
+    appointments = cursor.fetchall()
+
+    appts_by_day = defaultdict(list)
+
+    for appt_date, appt_time, username, clinic in appointments:
+        # Convert string dates if necessary
+        if isinstance(appt_date, str):
+            appt_date = datetime.strptime(appt_date, "%Y-%m-%d").date()
+
+        time_str = appt_time.strftime("%H:%M") if hasattr(appt_time, 'strftime') else str(appt_time)
+
+        appts_by_day[appt_date.day].append({
+            "time": time_str,
+            "patient": username,
+            "clinic": clinic
+        })
+
+    cal = calendar.Calendar(firstweekday=0)  # Monday start
+    month_days = list(cal.itermonthdays(year, month))
+    weeks = [month_days[i:i+7] for i in range(0, len(month_days), 7)]
+
+    return render_template(
+        "doctor_appointments_calendar.html",
+        year=year,
+        month=month,
+        weeks=weeks,
+        appts_by_day=appts_by_day,
+        month_name=calendar.month_name[month]
+    )
 
 @app.route('/dashboard')
 def dashboard():
@@ -221,23 +353,20 @@ def doctor_dashboard():
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('query')
-    print(f"Search query: {query}")  # Check if this prints in terminal
+    print(f"Search query: {query}")  # Debug print
 
-    conn = mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")
-    )
-    cursor = conn.cursor()
-    sql = "SELECT * FROM doc_info WHERE DName LIKE %s OR DClinic LIKE %s"
-    val = ('%' + query + '%', '%' + query + '%')
+    sql = """
+        SELECT * FROM doc_info 
+        WHERE DName LIKE %s OR DClinic LIKE %s OR Dspeciality LIKE %s
+    """
+    val = ('%' + query + '%', '%' + query + '%', '%' + query + '%')
     cursor.execute(sql, val)
     results = cursor.fetchall()
 
     print(f"Results: {results}") 
 
     return render_template('search_results.html', query=query, results=results)
+
 
 @app.route('/prescriptions')
 def prescriptions():
