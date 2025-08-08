@@ -1,23 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Search Results</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Search Results</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
 </head>
 <body>
-    <h2>Search Results for "{{ query }}"</h2>
-<ul>
-    {% for doctor in results %}
-        <li>
-            Name: {{ doctor[0] }}<br>
-            Clinic: {{ doctor[1] }}<br>
-            Email: {{ doctor[2] }}<br>
-            Contact: {{ doctor[3] }}
-            Specialization: {{ doctor[4] }}<br>
-        </li>
-    {% endfor %}
-</ul>
 
-    <a href="/dashboard">Back to Dashboard</a>
+  <div class="login-container">
+    <h1>Search Results</h1>
+
+    {% if results %}
+      <ul style="list-style: none; padding: 0; margin-bottom: 20px;">
+        {% for doctor in results %}
+        <li style="margin-bottom: 20px; background: #fff; padding: 15px; border-radius: 8px; color: #333;">
+          <strong>{{ doctor.DName }}</strong> - {{ doctor.Dspeciality }}<br />
+          Clinic: {{ doctor.DClinic }}<br />
+          Email: {{ doctor.Demail }}<br />
+          Contact: {{ doctor.DContact }}<br /><br />
+          <button onclick="window.location.href='{{ url_for('doctor_profile', doctor_id=doctor.DocID) }}'" 
+                  style="width: 100%; padding: 10px; border:none; border-radius: 5px; background: #190162; color: white; cursor: pointer;">
+            View Profile
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No results found.</p>
+    {% endif %}
+
+    <button onclick="window.location.href='{{ url_for('dashboard') }}'"
+            style="width: 100%; padding: 10px; border:none; border-radius: 5px; background: #190162; color: white; cursor: pointer;">
+      ← Back to Dashboard
+    </button>
+  </div>
+
 </body>
 </html>
+
+
 

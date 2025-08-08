@@ -9,6 +9,16 @@
     <div class="appointment-container">
         <h2>Book Appointment</h2>
 
+        <!-- Back to Dashboard button -->
+        <button 
+            type="button" 
+            class="btn back-btn" 
+            onclick="window.location.href='{{ url_for('dashboard') }}'"
+            style="margin-bottom: 1rem; width: 100%;"
+        >
+            ← Back to Dashboard
+        </button>
+
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -64,3 +74,4 @@
     </div>
 </body>
 </html>
+

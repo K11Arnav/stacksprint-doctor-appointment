@@ -1,108 +1,158 @@
+/* appointment.css */
+
 body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(to right, #190162, #080808);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to right, #190162, #080808);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  color: white;
 }
 
 .appointment-container {
-    background: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 500px;
+  background: #121212;
+  padding: 30px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #2c3e50;
+  text-align: center;
+  margin-bottom: 20px;
+  color: white;
 }
 
 label {
-    font-weight: bold;
-    display: block;
-    margin: 10px 0 5px;
+  display: block;
+  margin: 15px 0 8px;
+  font-weight: bold;
+  color: white;
 }
 
-input[type="text"],
 input[type="date"],
 select {
-    width: 100%;
-    padding: 0.6rem;
-    margin-top: 0.3rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-family: Arial, sans-serif;
-    color: #2c3e50;
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #444;
+  background-color: #1e1e1e;
+  color: white;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+input[type="date"]:focus,
+select:focus {
+  outline: none;
+  border-color: #3300b3;
+  box-shadow: 0 0 6px #3300b3;
 }
 
 .time-slots {
-    margin-top: 1rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+  margin: 20px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .time-slots label {
-    cursor: pointer;
+  background: #190162;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  color: white;
+  border: 1px solid transparent;
+  transition: background-color 0.3s, border-color 0.3s;
+  font-size: 14px;
+}
+
+.time-slots label:hover {
+  background-color: #3300b3;
+  border-color: #3300b3;
 }
 
 .time-slots input[type="radio"] {
-    display: none;
+  margin-right: 8px;
+  cursor: pointer;
 }
 
-.time-slots span {
-    display: inline-block;
-    padding: 0.5rem 0.8rem;
-    border-radius: 5px;
-    background-color: #ecf0f1;
-    color: #2c3e50;
-    transition: background-color 0.3s ease;
-}
-
-.time-slots input[type="radio"]:checked + span {
-    background-color: #3498db;
-    color: white;
-    font-weight: bold;
+/* Disabled radio labels */
+.time-slots input[type="radio"]:disabled + span,
+.time-slots input[type="radio"]:disabled {
+  color: #777;
+  cursor: not-allowed;
 }
 
 .time-slots input[type="radio"]:disabled + span {
-    background-color: #e74c3c;
-    color: white;
-    cursor: not-allowed;
+  text-decoration: line-through;
 }
 
-button {
-    background: #00c6fb;
-    color: white;
-    border: none;
-    padding: 10px;
-    margin-top: 20px;
-    width: 100%;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
+.time-slots input[type="radio"]:disabled + span,
+.time-slots input[type="radio"]:disabled + span:hover {
+  background-color: transparent;
+  border-color: transparent;
 }
 
+/* Buttons */
+.btn, button[type="submit"] {
+  background: #190162;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-block;
+  width: 100%;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+  user-select: none;
+  text-align: center;
+}
+
+.btn:hover, button[type="submit"]:hover {
+  background-color: #3300b3;
+}
+
+/* Flash message styles */
 .flash {
-    margin-bottom: 1rem;
-    padding: 0.75rem;
-    border-radius: 6px;
-    text-align: center;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  text-align: center;
 }
 
 .flash.success {
-    background-color: #2ecc71;
-    color: white;
+  background-color: #2e7d32;
+  color: white;
 }
 
 .flash.error {
-    background-color: #e74c3c;
-    color: white;
+  background-color: #b71c1c;
+  color: white;
+}
+
+/* Responsive */
+@media screen and (max-width: 480px) {
+  .appointment-container {
+    width: 90%;
+    padding: 20px;
+  }
+
+  .time-slots {
+    gap: 6px;
+  }
+
+  .time-slots label {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
 }

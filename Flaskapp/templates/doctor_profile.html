@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Doctor Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
+
+  <div class="login-container">
+    <h1>{{ doctor.DName }} - {{ doctor.Dspeciality }}</h1>
+    <label style="margin-bottom: 20px;">Clinic: {{ doctor.DClinic }}</label>
+
+    <form action="{{ url_for('appointment') }}" method="GET">
+      <input type="hidden" name="doctor_id" value="{{ doctor.DocID }}">
+      <input type="hidden" name="clinic_id" value="{{ doctor.ClinicID }}">
+      <button type="submit" class="btn" style="width: 100%;">Book Appointment</button>
+    </form>
+  </div>
+
+</body>
+</html>

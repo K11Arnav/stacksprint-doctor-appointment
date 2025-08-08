@@ -89,7 +89,6 @@ def register():
         return redirect(url_for('login', msg="User registered successfully"))
     return render_template('register.html')
 
-
 @app.route('/appointment', methods=['GET', 'POST'])
 def appointment():
     today = date.today().isoformat()
@@ -171,68 +170,6 @@ def appointment():
                            selected_doctor=selected_doctor,
                            selected_date=selected_date,
                            booked_slots=booked_slots)
-
-
-# @app.route('/appointment', methods=['GET', 'POST'])
-# def appointment():
-#     today = date.today().isoformat()
-#     selected_clinic = None
-#     selected_doctor = None
-#     selected_date = today
-#     clinics = []
-#     doctors = []
-#     booked_slots = []
-
-#     # Get logged-in username from session
-#     username = session.get('username')
-#     if not username:
-#         flash("Please log in to book an appointment.", "error")
-#         return redirect(url_for('login'))  # Adjust 'login' to your login route
-
-#     cursor.execute("SELECT DISTINCT Clinic FROM Doctors")
-#     clinics = [row[0] for row in cursor.fetchall()]
-
-#     if request.method == 'POST':
-#         selected_clinic = request.form.get('clinic')
-#         selected_doctor = request.form.get('doctor')
-#         selected_date = request.form.get('date')
-#         time = request.form.get('time')
-
-#         if selected_clinic:
-#             cursor.execute("SELECT Doctor FROM Doctors WHERE Clinic = %s", (selected_clinic,))
-#             doctors = [row[0] for row in cursor.fetchall()]
-
-#         if selected_clinic and selected_doctor and selected_date and time:
-#             # Check if the slot already exists in DB
-#             cursor.execute("""
-#                 SELECT 1 FROM Appointment 
-#                 WHERE ADate = %s AND ATime = %s AND Clinic = %s AND Doctor = %s
-#             """, (selected_date, time, selected_clinic, selected_doctor))
-#             if cursor.fetchone():
-#                 flash("Appointment already booked", "error")
-#             else:
-#                 cursor.execute("""
-#                     INSERT INTO Appointment (ADate, ATime, Doctor, Clinic, username)
-#                     VALUES (%s, %s, %s, %s, %s)
-#                 """, (selected_date, time, selected_doctor, selected_clinic, username))
-#                 conn.commit()
-#                 flash("Appointment booked successfully!", "success")
-
-#     if selected_clinic and selected_doctor and selected_date:
-#         cursor.execute("""
-#             SELECT ATime FROM Appointment 
-#             WHERE ADate = %s AND Clinic = %s AND Doctor = %s
-#         """, (selected_date, selected_clinic, selected_doctor))
-#         booked_slots = [row[0] for row in cursor.fetchall()]
-
-#     return render_template('appointment.html',
-#                            current_date=today,
-#                            clinics=clinics,
-#                            doctors=doctors,
-#                            selected_clinic=selected_clinic,
-#                            selected_doctor=selected_doctor,
-#                            selected_date=selected_date,
-#                            booked_slots=booked_slots)
 
 
 @app.route("/appointments_calendar")
@@ -353,19 +290,77 @@ def doctor_dashboard():
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('query')
-    print(f"Search query: {query}")  # Debug print
 
-    sql = """
-        SELECT * FROM doc_info 
-        WHERE DName LIKE %s OR DClinic LIKE %s OR Dspeciality LIKE %s
-    """
-    val = ('%' + query + '%', '%' + query + '%', '%' + query + '%')
-    cursor.execute(sql, val)
-    results = cursor.fetchall()
+    conn = mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
+    )
+    cursor = conn.cursor(dictionary=True)
 
-    print(f"Results: {results}") 
+    results = []
 
-    return render_template('search_results.html', query=query, results=results)
+    # 1. Search for doctors by name
+    cursor.execute("SELECT * FROM doc_info WHERE DName LIKE %s", (f"%{query}%",))
+    results += cursor.fetchall()
+
+    # 2. Search for doctors by specialty
+    cursor.execute("SELECT * FROM doc_info WHERE Dspeciality LIKE %s", (f"%{query}%",))
+    results += cursor.fetchall()
+
+    # 3. Search for clinics
+    cursor.execute("SELECT ClinicID, ClinicName FROM clinic_info WHERE ClinicName LIKE %s", (f"%{query}%",))
+    clinics = cursor.fetchall()
+
+    for clinic in clinics:
+        clinic_id = clinic['ClinicID']
+        # Find doctors in this clinic
+        cursor.execute("SELECT * FROM doc_info WHERE ClinicID = %s", (clinic_id,))
+        clinic_doctors = cursor.fetchall()
+        for doc in clinic_doctors:
+            doc['ClinicName'] = clinic['ClinicName']
+            results.append(doc)
+
+    conn.close()
+
+    return render_template("search_results.html", results=results)
+
+@app.route('/doctor_profile/<int:doctor_id>')
+def doctor_profile(doctor_id):
+    conn = mysql.connector.connect(
+        host=os.getenv("DB_HOST"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        database=os.getenv("DB_NAME")
+    )
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM doc_info WHERE DocID = %s", (doctor_id,))
+    doctor = cursor.fetchone()
+    conn.close()
+
+    if doctor is None:
+        return "Doctor not found", 404
+
+    return render_template("doctor_profile.html", doctor=doctor)
+
+
+# @app.route('/search', methods=['GET'])
+# def search():
+#     query = request.args.get('query')
+#     print(f"Search query: {query}")  # Debug print
+
+#     sql = """
+#         SELECT * FROM doc_info 
+#         WHERE DName LIKE %s OR DClinic LIKE %s OR Dspeciality LIKE %s
+#     """
+#     val = ('%' + query + '%', '%' + query + '%', '%' + query + '%')
+#     cursor.execute(sql, val)
+#     results = cursor.fetchall()
+
+#     print(f"Results: {results}") 
+
+#     return render_template('search_results.html', query=query, results=results)
 
 
 @app.route('/prescriptions')
@@ -434,7 +429,7 @@ def reset_password(token):
         cursor.execute("UPDATE test_info_users SET password = %s, reset_token = NULL WHERE reset_token = %s",
                        (new_password, token))
         conn.commit()
-        return "Password updated successfully!"
+        return redirect(url_for("login"))
 
     return render_template('reset_password.html')
 

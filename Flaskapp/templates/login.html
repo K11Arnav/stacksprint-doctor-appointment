@@ -1,22 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Choice</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login Choice</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
 
-    <div class="login-container">
-        <h1>Welcome to the Clinic</h1>
-        <p style="text-align:center; margin-bottom: 20px;">Please select your login type:</p>
+  <div class="login-container">
+    <h1>Welcome to the Clinic</h1>
+    <label style="text-align:center; margin-bottom: 20px;">Please select your login type:</label>
 
-        <form>
-            <input type="button" value="Patient Login" style="background-color: #4CAF50; color: white;" onclick="window.location.href='/patient_login'">
-            <input type="button" value="Doctor Login" style="background-color: #1976d2; color: white;" onclick="window.location.href='/doctor_login'">
-        </form>
-    </div>
+    <form onsubmit="return false;">
+      <input type="submit" value="Patient Login" onclick="window.location.href='/patient_login'">
+      <input type="submit" value="Doctor Login" onclick="window.location.href='/doctor_login'">
+    </form>
+  </div>
 
 </body>
 </html>
+

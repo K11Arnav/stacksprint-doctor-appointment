@@ -2,17 +2,15 @@
 <html>
 <head>
     <title>Appointment Calendar - {{ month_name }} {{ year }}</title>
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; vertical-align: top; padding: 8px; height: 100px; }
-        th { background-color: #f0f0f0; }
-        td.empty { background-color: #eee; }
-        .appt { font-size: 0.85em; margin: 4px 0; padding: 2px 4px; background: #cce5ff; border-radius: 4px; }
-        .appt-time { font-weight: bold; }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
 </head>
 <body>
     <h1>Appointments for {{ month_name }} {{ year }}</h1>
+
+    <!-- Back to Dashboard button -->
+    <div class="back-button-container">
+        <a href="{{ url_for('doctor_dashboard') }}" class="back-button">← Back to Dashboard</a>
+    </div>
 
     <table>
         <thead>
@@ -40,7 +38,6 @@
                                         {% if appt.description %}{{ appt.description }}{% endif %}
                                     </div>
                                 {% endfor %}
-                            {% else %}
                             {% endif %}
                         </td>
                     {% endif %}
@@ -51,3 +48,4 @@
     </table>
 </body>
 </html>
+
