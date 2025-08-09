@@ -11,11 +11,10 @@
   <div class="login-container">
     <h1>{{ doctor.DName }} - {{ doctor.Dspeciality }}</h1>
     <label style="margin-bottom: 20px;">Clinic: {{ doctor.DClinic }}</label>
-
-    <form action="{{ url_for('appointment') }}" method="GET">
-      <input type="hidden" name="doctor_id" value="{{ doctor.DocID }}">
+    <form onsubmit="return false;">
+      <input type="submit" value="Book Appointment" onclick="window.location.href='/appointment'">
+       <input type="hidden" name="doctor_id" value="{{ doctor.DocID }}">
       <input type="hidden" name="clinic_id" value="{{ doctor.ClinicID }}">
-      <button type="submit" class="btn" style="width: 100%;">Book Appointment</button>
     </form>
   </div>
 

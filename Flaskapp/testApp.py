@@ -46,10 +46,7 @@ def patient_login():
         if user:
             session['username'] = user[0]
             print("Session after login:", session) 
-            flash("User login successful!", "success")
             return redirect(url_for('dashboard'))
-        else:
-            flash("Invalid username or password", "error")
 
     return render_template('patient_login.html')
 
@@ -65,7 +62,6 @@ def doctor_login():
         if doctor:
             session['doctor_logged_in'] = True
             session['doctor_username'] = username
-            flash("Doctor login successful!")
             return redirect(url_for('doctor_dashboard'))
         else:
             return redirect(url_for('doctor_login', msg="Invalid Password or Username"))
@@ -99,13 +95,10 @@ def appointment():
     doctors = []
     booked_slots = []
 
-    # Get logged-in username from session
+    
     username = session.get('username')
     if not username:
-        flash("Please log in to book an appointment.", "error")
-        return redirect(url_for('login'))  # Adjust 'login' if your login route has a different name
-
-    # Get list of clinics
+        return redirect(url_for('login')) 
     cursor.execute("SELECT DISTINCT Clinic FROM Doctors")
     clinics = [row[0] for row in cursor.fetchall()]
 
@@ -114,14 +107,11 @@ def appointment():
         selected_doctor = request.form.get('doctor')
         selected_date = request.form.get('date')
         time = request.form.get('time')
-
-        # If clinic selected, get doctors for that clinic
         if selected_clinic:
             cursor.execute("SELECT Doctor FROM Doctors WHERE Clinic = %s", (selected_clinic,))
             doctors = [row[0] for row in cursor.fetchall()]
 
         if selected_clinic and selected_doctor and selected_date and time:
-            # Get the doctor's username (duser) from Doctors table
             cursor.execute("SELECT username FROM Doctors WHERE Doctor = %s AND Clinic = %s", 
                            (selected_doctor, selected_clinic))
             doctor_user_row = cursor.fetchone()
@@ -129,7 +119,6 @@ def appointment():
                 doctor_username = doctor_user_row[0]
             else:
                 doctor_username = None
-                flash("Selected doctor username not found.", "error")
                 return render_template('appointment.html',
                                        current_date=today,
                                        clinics=clinics,
@@ -138,8 +127,6 @@ def appointment():
                                        selected_doctor=selected_doctor,
                                        selected_date=selected_date,
                                        booked_slots=booked_slots)
-
-            # Check if the slot is already booked
             cursor.execute("""
                 SELECT 1 FROM Appointment 
                 WHERE ADate = %s AND ATime = %s AND Clinic = %s AND Doctor = %s
@@ -153,8 +140,6 @@ def appointment():
                 """, (selected_date, time, selected_doctor, selected_clinic, username, doctor_username))
                 conn.commit()
                 flash("Appointment booked successfully!", "success")
-
-    # After POST or on GET, if clinic, doctor and date selected, get booked slots for that doctor
     if selected_clinic and selected_doctor and selected_date:
         cursor.execute("""
             SELECT ATime FROM Appointment 
@@ -176,14 +161,9 @@ def appointment():
 def appointments_calendar():
     username = session.get("username")
     if not username:
-        flash("Please log in to access the calendar.", "error")
         return redirect(url_for("login"))
-
-    # Get year and month from query params or default to current month
     year = request.args.get("year", type=int) or datetime.now().year
     month = request.args.get("month", type=int) or datetime.now().month
-
-    # Query all appointments for user for this month
     start_date = date(year, month, 1)
     last_day = calendar.monthrange(year, month)[1]
     end_date = date(year, month, last_day)
@@ -195,11 +175,8 @@ def appointments_calendar():
         ORDER BY ADate, ATime
     """, (username, start_date, end_date))
     appointments = cursor.fetchall()
-
-    # Organize appointments by day for easy lookup in template
     appts_by_day = defaultdict(list)
     for appt_date, appt_time, doctor, clinic in appointments:
-        # Safely format appointment time to "HH:MM"
         if hasattr(appt_time, 'strftime'):
             time_str = appt_time.strftime("%H:%M")
         else:
@@ -210,14 +187,9 @@ def appointments_calendar():
             "doctor": doctor,
             "clinic": clinic,
         })
-
-    # Generate calendar for the month (list of weeks, each week is list of days)
     cal = calendar.Calendar()
-    month_days = list(cal.itermonthdays(year, month))  # 0 means day outside month
-
-    # Chunk month_days into weeks of 7 days for rendering
+    month_days = list(cal.itermonthdays(year, month))  
     weeks = [month_days[i:i+7] for i in range(0, len(month_days), 7)]
-
     return render_template(
         "appointments_calendar.html",
         year=year,
@@ -231,10 +203,8 @@ def appointments_calendar():
 def doctor_appointments_calendar():
     doctor_username = session.get("doctor_username")
     if not doctor_username:
-        flash("Doctor username missing from session.", "error")
         return redirect(url_for("doctor_login"))
 
-    # Get year/month from query params or default to current
     year = request.args.get("year", type=int) or datetime.now().year
     month = request.args.get("month", type=int) or datetime.now().month
 
@@ -254,7 +224,6 @@ def doctor_appointments_calendar():
     appts_by_day = defaultdict(list)
 
     for appt_date, appt_time, username, clinic in appointments:
-        # Convert string dates if necessary
         if isinstance(appt_date, str):
             appt_date = datetime.strptime(appt_date, "%Y-%m-%d").date()
 
@@ -266,7 +235,7 @@ def doctor_appointments_calendar():
             "clinic": clinic
         })
 
-    cal = calendar.Calendar(firstweekday=0)  # Monday start
+    cal = calendar.Calendar(firstweekday=0)  
     month_days = list(cal.itermonthdays(year, month))
     weeks = [month_days[i:i+7] for i in range(0, len(month_days), 7)]
 
@@ -287,6 +256,7 @@ def dashboard():
 def doctor_dashboard():
     return render_template('doctor_dashboard.html')
 
+
 @app.route('/search', methods=['GET'])
 def search():
     query = request.args.get('query')
@@ -300,22 +270,14 @@ def search():
     cursor = conn.cursor(dictionary=True)
 
     results = []
-
-    # 1. Search for doctors by name
     cursor.execute("SELECT * FROM doc_info WHERE DName LIKE %s", (f"%{query}%",))
     results += cursor.fetchall()
-
-    # 2. Search for doctors by specialty
     cursor.execute("SELECT * FROM doc_info WHERE Dspeciality LIKE %s", (f"%{query}%",))
     results += cursor.fetchall()
-
-    # 3. Search for clinics
     cursor.execute("SELECT ClinicID, ClinicName FROM clinic_info WHERE ClinicName LIKE %s", (f"%{query}%",))
     clinics = cursor.fetchall()
-
     for clinic in clinics:
         clinic_id = clinic['ClinicID']
-        # Find doctors in this clinic
         cursor.execute("SELECT * FROM doc_info WHERE ClinicID = %s", (clinic_id,))
         clinic_doctors = cursor.fetchall()
         for doc in clinic_doctors:
@@ -325,6 +287,7 @@ def search():
     conn.close()
 
     return render_template("search_results.html", results=results)
+
 
 @app.route('/doctor_profile/<int:doctor_id>')
 def doctor_profile(doctor_id):
@@ -345,35 +308,14 @@ def doctor_profile(doctor_id):
     return render_template("doctor_profile.html", doctor=doctor)
 
 
-# @app.route('/search', methods=['GET'])
-# def search():
-#     query = request.args.get('query')
-#     print(f"Search query: {query}")  # Debug print
-
-#     sql = """
-#         SELECT * FROM doc_info 
-#         WHERE DName LIKE %s OR DClinic LIKE %s OR Dspeciality LIKE %s
-#     """
-#     val = ('%' + query + '%', '%' + query + '%', '%' + query + '%')
-#     cursor.execute(sql, val)
-#     results = cursor.fetchall()
-
-#     print(f"Results: {results}") 
-
-#     return render_template('search_results.html', query=query, results=results)
-
-
 @app.route('/prescriptions')
 def prescriptions():
     if 'username' not in session:
-        flash("Please log in to view prescriptions.", "error")
         return redirect(url_for('login'))
 
     username = session['username']
     cursor.execute("SELECT filename FROM Prescriptions WHERE username = %s", (username,))
     prescriptions = cursor.fetchall()
-
-    # Build static URLs
     prescription_urls = [
         url_for('static', filename=f'prescriptions/{row[0]}') for row in prescriptions
     ]
@@ -411,7 +353,6 @@ def forgot_password():
             reset_url = url_for('reset_password', token=token, _external=True)
             send_reset_email(email, reset_url)
 
-        flash('If the email exists, a reset link has been sent.', 'info')
         return redirect(url_for('login'))
 
     return render_template('forgot_password.html')
@@ -436,7 +377,6 @@ def reset_password(token):
 @app.route("/upload_prescription", methods=["GET", "POST"])
 def upload_prescription():
     if not session.get("doctor_logged_in"):
-        flash("Please log in as a doctor.", "error")
         return redirect(url_for("doctor_login"))
 
     if request.method == "POST":
@@ -444,11 +384,9 @@ def upload_prescription():
         file = request.files.get("prescription")
 
         if not patient_name:
-            flash("Please enter patient name.", "error")
             return redirect(request.url)
 
         if not file or file.filename == "":
-            flash("Please choose a file to upload.", "error")
             return redirect(request.url)
 
         original_filename = os.path.basename(file.filename)
@@ -462,12 +400,9 @@ def upload_prescription():
                 (session.get("doctor_username"), patient_name, original_filename, datetime.now())
             )
             conn.commit()
-
-            flash(f"Prescription uploaded: {original_filename}", "success")
             return redirect(url_for("doctor_dashboard"))
 
         except Exception as e:
-            flash("Upload failed: " + str(e), "error")
             return redirect(request.url)
 
     return render_template("upload_prescription.html")
