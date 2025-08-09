@@ -1,4 +1,4 @@
-Visit [Live Demo]([https://your-app-url.com](https://d8b14e9365ad.ngrok-free.app)) to try it out!
+Visit [Live Demo]((https://d8b14e9365ad.ngrok-free.app)) to try it out!
 # 🏥 Multi-Clinic Doctor Appointment System
 
 We are participating in a hackathon called **TechRush**, conducted by the **IEEE Club of Pune Institute of Computer Technology**.
