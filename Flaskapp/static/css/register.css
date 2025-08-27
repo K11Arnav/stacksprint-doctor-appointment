@@ -10,7 +10,7 @@ body {
 }
 
 .register-container {
-    background: white;
+    background: #121212;
     padding: 30px 40px;
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.2);
@@ -20,12 +20,14 @@ body {
 h2 {
     text-align: center;
     margin-bottom: 25px;
+    color: white;
 }
 
 label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
+    color: white;
 }
 
 input[type="text"], 
@@ -37,6 +39,8 @@ input[type="password"] {
     border: 1px solid #ccc;
     border-radius: 8px;
     outline: none;
+    background: #1e1e1e;
+    color: white;
     transition: border-color 0.3s;
 }
 
@@ -48,11 +52,15 @@ input[type="submit"] {
     width: 100%;
     padding: 12px;
     border: none;
-    background: #00c6fb;
+    background: #190162;
     color: white;
     font-size: 16px;
     font-weight: bold;
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s;
+}
+
+input[type="submit"]:hover {
+    background: #2d1391;
 }

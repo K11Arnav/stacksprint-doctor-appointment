@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Appointment Calendar - {{ month_name }} {{ year }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/calendar.css') }}">
+</head>
+<body>
+    <h1>Appointments for {{ month_name }} {{ year }}</h1>
+
+    <!-- Back to Dashboard button -->
+    <div class="back-button-container">
+        <a href="{{ url_for('dashboard') }}" class="back-button">← Back to Dashboard</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                {% for day in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] %}
+                    <th>{{ day }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for week in weeks %}
+            <tr>
+                {% for day in week %}
+                    {% if day == 0 %}
+                        <td class="empty"></td>
+                    {% else %}
+                        <td>
+                            <div><strong>{{ day }}</strong></div>
+                            {% if appts_by_day[day] %}
+                                {% for appt in appts_by_day[day] %}
+                                    <div class="appt">
+                                        <span class="appt-time">{{ appt.time }}</span><br>
+                                        Dr. {{ appt.doctor }}<br>
+                                        {{ appt.clinic }}<br>
+                                        {% if appt.description %}{{ appt.description }}{% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

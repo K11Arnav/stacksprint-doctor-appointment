@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prescription Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/prescriptions.css') }}">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <h1>Prescription Viewer</h1>
+
+    <div class="top-bar">
+      <a href="{{ url_for('dashboard') }}" class="btn">← Back to Dashboard</a>
+    </div>
+
+    {% if prescriptions %}
+      <div class="prescriptions-gallery">
+        {% for p in prescriptions %}
+          <div class="prescription">
+            <img src="{{ p }}" alt="Prescription" onclick="openFullscreen('{{ p }}')" />
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No prescriptions found.</p>
+    {% endif %}
+  </div>
+
+  <!-- Modal -->
+  <div id="imageModal" class="modal" onclick="closeFullscreen()">
+    <span class="close" onclick="closeFullscreen()">&times;</span>
+    <img class="modal-content" id="modalImage" />
+  </div>
+
+  <script>
+    function openFullscreen(src) {
+      const modal = document.getElementById("imageModal");
+      const modalImg = document.getElementById("modalImage");
+      modal.style.display = "block";
+      modalImg.src = src;
+    }
+    function closeFullscreen() {
+      const modal = document.getElementById("imageModal");
+      modal.style.display = "none";
+    }
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeFullscreen();
+    });
+  </script>
+</body>
+</html>

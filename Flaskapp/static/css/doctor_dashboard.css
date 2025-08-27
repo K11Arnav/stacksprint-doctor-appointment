@@ -6,6 +6,7 @@ body {
     justify-content: center;
     height: 100vh;
     margin: 0;
+    color: white;
 }
 
 .login-container {
@@ -14,42 +15,37 @@ body {
     border-radius: 10px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     width: 300px;
+    text-align: center;
 }
 
 h1 {
-    text-align: center;
     margin-bottom: 20px;
     color: white;
 }
 
-label {
-    font-weight: bold;
-    display: block;
-    margin: 10px 0 5px;
-    color: white;
-}
-
-input[type="text"], input[type="password"] {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background: #121212;
-    color: white;
-}
-
-input[type="submit"] {
+/* Buttons styling */
+.btn {
     background: #190162;
     color: white;
     border: none;
     padding: 10px;
-    margin-top: 15px;
+    margin: 10px 0;
     width: 100%;
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
+    transition: background 0.3s ease;
 }
 
-input[type="submit"]:hover {
+.btn:hover {
     background: #2d1391;
+}
+
+/* Red Logout Button */
+.logout-btn {
+    background-color: #b32d00;
+}
+
+.logout-btn:hover {
+    background-color: #e53935;
 }

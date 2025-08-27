@@ -3,45 +3,40 @@
 <head>
   <meta charset="UTF-8">
   <title>Doctor Appointment Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 </head>
 <body>
 
-  <header>
-    <div class="title">Doctor Appointment Dashboard</div>
-    <a href="/" class="logout-btn">Logout</a>
-  </header>
-
-  <div class="container">
+  <div class="dashboard-container">
+    <h1>Doctor Appointment Dashboard</h1>
 
     <div class="top-bar">
-      <div class="search-bar">
-        <form method="get" action="{{ url_for('search') }}">
-          <input type="text" name="query" placeholder="Search doctor, clinic, or disease" required>
-          <button type="submit" class="btn">Search</button>
-        </form>
-      </div>
+      <form method="get" action="{{ url_for('search') }}" class="search-bar" style="display: flex; gap: 10px;">
+        <input type="text" name="query" placeholder="Search doctor, clinic or speciality" required>
+        <button type="submit" class="btn">Search</button>
+      </form>
 
       <a href="{{ url_for('appointment') }}" class="btn">Book an Appointment</a>
+      <a href="{{ url_for('prescriptions') }}" class="btn">View Prescriptions</a>
+      <a href="{{ url_for('appointments_calendar') }}" class="btn">Calendar View</a>
+      <a href="/" class="btn logout-btn">Logout</a>
     </div>
 
     <div class="map-container">
-      <h3>Available Clinics (Map View)</h3>
-      <div class="map-frame">
-        <iframe
-          src="https://www.google.com/maps/d/u/0/embed?mid=1p_0sYbPMAjxdnOEVGKN3NAG9AV-cBRA&ehbc=2E312F"
-          allowfullscreen
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
-      </div>
+      <iframe
+        src="https://www.google.com/maps/d/u/0/embed?mid=1p_0sYbPMAjxdnOEVGKN3NAG9AV-cBRA&ehbc=2E312F"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
     </div>
 
-    <h3 class="tips-heading">Health Tips</h3>
+    <h3>Health Tips</h3>
     <div class="tips-section">
       <div class="tip-card">
         <h4>Stay Hydrated</h4>
-        <p>Drink at least 2 to 3 liters of water daily to stay energized and support your immune system.</p>
+        <p>Drink at least 2–3 liters of water daily to stay energized and support your immune system.</p>
       </div>
       <div class="tip-card">
         <h4>Regular Exercise</h4>
@@ -53,11 +48,11 @@
       </div>
       <div class="tip-card">
         <h4>Get Enough Sleep</h4>
-        <p>Aim for 7 to 8 hours of quality sleep to improve mental focus and reduce health risks.</p>
+        <p>Aim for 7–8 hours of quality sleep to improve mental focus and reduce health risks.</p>
       </div>
     </div>
-
   </div>
 
 </body>
 </html>
+

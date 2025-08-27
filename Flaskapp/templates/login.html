@@ -2,48 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login Choice</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
 
-  <!-- Flash messages -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="flash-container">
-        {% for category, message in messages %}
-          <div class="flash-message {{ category }}">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
-
-  <!-- Login box -->
   <div class="login-container">
-    <h1>Login</h1>
-    <form method="POST" action="/login">
-      <label for="username">Username</label>
-      <input id="username" name="username" type="text" required />
+    <h1>Welcome to the Clinic</h1>
+    <label style="text-align:center; margin-bottom: 20px;">Please select your login type:</label>
 
-      <label for="password">Password</label>
-      <input id="password" name="password" type="password" required />
-
-      <input type="submit" value="Login" />
+    <form onsubmit="return false;">
+      <input type="submit" value="Patient Login" onclick="window.location.href='/patient_login'">
+      <input type="submit" value="Doctor Login" onclick="window.location.href='/doctor_login'">
     </form>
-
-    <!-- Forgot password link -->
-    <div class="forgot-password">
-      <a href="/forgot-password">Forgot password?</a>
-    </div>
   </div>
-
-  <script>
-    setTimeout(() => {
-      const flash = document.querySelector('.flash-message');
-      if (flash) flash.style.display = 'none';
-    }, 4000);
-  </script>
 
 </body>
 </html>
+
