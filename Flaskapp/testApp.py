@@ -1,160 +1,65 @@
-from flask import Flask, render_template, request, redirect, url_for, flash,session
+from flask import Flask, render_template, request, redirect
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from datetime import date
-import os
 import mysql.connector
-from mysql.connector import IntegrityError
+import os
 
+# Load environment variables from .env file
 load_dotenv()
 
+app = Flask(__name__)
+
+# Use environment variables for DB config
 conn = mysql.connector.connect(
     host=os.getenv("DB_HOST"),
     user=os.getenv("DB_USER"),
     password=os.getenv("DB_PASSWORD"),
-    database=os.getenv("DB_NAME")
+    database=os.getenv("DB_NAME")     
 )
-cursor=conn.cursor()
+cursor = conn.cursor(dictionary=True)
 
-app=Flask(_name_)
-app.secret_key = 'your_secret_key'
-@app.route('/')
-def home():
-    return render_template('home.html')
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+@app.route('/', methods=['GET', 'POST'])
+def calendar():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        conn = mysql.connector.connect(
-            host=os.getenv("DB_HOST"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            database=os.getenv("DB_NAME")
-        )
-        cursor = conn.cursor()
-        query = "SELECT * FROM test_info_users WHERE username=%s AND password=%s"
-        cursor.execute(query, (username, password))
-        user = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        if user:
-            session['username'] = user[0]  
-            flash("User login successful!")
-            return redirect(url_for('dashboard'))
-        else:
-            flash("Invalid username or password")
-    return render_template('login.html')
-    
+        clinic_id = request.form['clinic']
+    else:
+        clinic_id = 1  # default clinic
 
-@app.route('/register', methods=['GET','POST'])
-def register():
-    if request.method == 'POST':
-        username=request.form['username']
-        emailID=request.form['email_id']
-        mobileNum=request.form['mobile_number']
-        password=request.form['password']
+    today = datetime.today()
+    start_date = today.replace(day=1)
+    end_date = (start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
 
-        sql="INSERT INTO test_info_users (username,email_id,mobile_number,password) VALUES (%s,%s,%s,%s)"
-        values=(username,emailID,mobileNum,password)
-        cursor.execute(sql,values)
-        conn.commit()
+    cursor.execute("SELECT * FROM clinics")
+    clinics = cursor.fetchall()
 
-        return redirect(url_for('login', msg="User registered successfully"))
-    return render_template('register.html')
+    cursor.execute("""
+        SELECT * FROM appointments 
+        WHERE clinic_id = %s AND date BETWEEN %s AND %s
+    """, (clinic_id, start_date.date(), end_date.date()))
+    appointments = cursor.fetchall()
 
-from flask import render_template, request, flash
-from datetime import date
+    calendar_data = {}
+    for appt in appointments:
+        date_str = appt['date'].strftime('%Y-%m-%d')
+        if date_str not in calendar_data:
+            calendar_data[date_str] = []
+        calendar_data[date_str].append(appt)
 
-@app.route('/appointment', methods=['GET', 'POST'])
-def appointment():
-    today = date.today().isoformat()
-    selected_clinic = None
-    selected_doctor = None
-    selected_date = today
-    clinics = []
-    doctors = []
-    booked_slots = []
+    return render_template('calendar.html', clinics=clinics, calendar_data=calendar_data, current_clinic=clinic_id, start_date=start_date)
 
-    # Get list of all available clinics
-    cursor.execute("SELECT DISTINCT Clinic FROM Doctors")
-    clinics = [row[0] for row in cursor.fetchall()]
+@app.route('/book', methods=['POST'])
+def book():
+    patient_name = request.form['patient_name']
+    date = request.form['date']
+    time = request.form['time']
+    clinic_id = request.form['clinic_id']
 
-    if request.method == 'POST':
-        selected_clinic = request.form.get('clinic')
-        selected_doctor = request.form.get('doctor')
-        selected_date = request.form.get('date')
-        time = request.form.get('time')
+    cursor.execute("""
+        INSERT INTO appointments (clinic_id, patient_name, date, time)
+        VALUES (%s, %s, %s, %s)
+    """, (clinic_id, patient_name, date, time))
+    conn.commit()
+    return redirect('/')
 
-        # Get list of doctors for selected clinic
-        if selected_clinic:
-            cursor.execute("SELECT Doctor FROM Doctors WHERE Clinic = %s", (selected_clinic,))
-            doctors = [row[0] for row in cursor.fetchall()]
-
-        # Only insert if all fields are filled
-        if selected_clinic and selected_doctor and selected_date and time:
-            # Check if the slot already exists in DB
-            cursor.execute("""
-                SELECT 1 FROM Appointment 
-                WHERE ADate = %s AND ATime = %s AND Clinic = %s AND Doctor = %s
-            """, (selected_date, time, selected_clinic, selected_doctor))
-
-            if cursor.fetchone():
-                flash("Appointment already booked", "error")
-            else:
-                cursor.execute("""
-                    INSERT INTO Appointment (ADate, ATime, Doctor, Clinic)
-                    VALUES (%s, %s, %s, %s)
-                """, (selected_date, time, selected_doctor, selected_clinic))
-                conn.commit()
-                flash("Appointment booked successfully!", "success")
-
-    # Always refresh booked slots to show red immediately
-    if selected_clinic and selected_doctor and selected_date:
-        cursor.execute("""
-            SELECT ATime FROM Appointment 
-            WHERE ADate = %s AND Clinic = %s AND Doctor = %s
-        """, (selected_date, selected_clinic, selected_doctor))
-        booked_slots = [row[0] for row in cursor.fetchall()]
-
-    return render_template('appointment.html',
-                           current_date=today,
-                           clinics=clinics,
-                           doctors=doctors,
-                           selected_clinic=selected_clinic,
-                           selected_doctor=selected_doctor,
-                           selected_date=selected_date,
-                           booked_slots=booked_slots)
-
-
-@app.route('/dashboard')
-def dashboard():
-    return render_template('dashboard.html')
-
-@app.route('/search', methods=['GET'])
-def search():
-    query = request.args.get('query')
-    print(f"Search query: {query}")  # Check if this prints in terminal
-
-    conn = mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")
-    )
-    cursor = conn.cursor()
-    sql = "SELECT * FROM doc_info WHERE DName LIKE %s OR DClinic LIKE %s"
-    val = ('%' + query + '%', '%' + query + '%')
-    cursor.execute(sql, val)
-    results = cursor.fetchall()
-
-    print(f"Results: {results}") 
-
-    return render_template('search_results.html', query=query, results=results)
-
-if _name_ == '_main_':
+if __name__ == '__main__':
     app.run(debug=True)
-
-print("Host:", os.getenv("DB_HOST"))
-print("User:", os.getenv("DB_USER"))
-print("Password:", os.getenv("DB_PASSWORD"))
